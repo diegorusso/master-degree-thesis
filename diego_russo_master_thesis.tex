@@ -1,0 +1,49 @@
+\documentclass[a4paper, 12pt]{report}
+\usepackage{amssymb}  % Symbol collection
+\usepackage[english]{babel}  % Multilingual support
+\usepackage{cite}  % Improved citation handling
+\usepackage{enumitem}  % Control layout of itemize, enumerate, description
+\usepackage{fancyhdr}  % Extensive control of page headers and footersi
+\usepackage[Bjornstrup]{fncychap}  % Seven predefined chapter heading styles
+\usepackage{hyperref}  % Extensive support for hypertext
+\usepackage{indentfirst}  % Indent first paragraph after section header
+\usepackage[utf8x]{inputenc}  % Accept different input encodings
+\usepackage{listings}  % Typeset source code listings
+\usepackage{setspace}  % Set space between lines
+\usepackage{svg}  % Include and extract SVG pictures
+\usepackage{ucs}  % Extended UTF-8 input encoding support
+\usepackage{url}  % Verbatim with URL-sensitive line breaks
+
+
+\author{Diego Russo}
+\title{Master Degree Thesis}
+\date{2021\-02\-23}
+
+\frenchspacing
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    bookmarks=true,
+    pdfpagemode=FullScreen,
+}
+
+\begin{document}
+
+    \include{cover}
+
+    \pagenumbering{arabic}
+    \pagestyle{fancy}
+    \rhead{}
+    \tableofcontents
+    \listoffigures
+
+    \include{abstract}
+    \include{introduction}
+
+    \bibliographystyle{plain}
+    \bibliography{bibliography}
+
+\end{document}

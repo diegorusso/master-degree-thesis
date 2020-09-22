@@ -1,0 +1,3 @@
+TARGETS=diego_russo_master_thesis
+FIGS=images
+include Makefile.include
