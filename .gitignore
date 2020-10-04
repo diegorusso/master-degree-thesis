@@ -2,4 +2,7 @@
 *.aux
 *.bbl
 *.blg
+*.lof
+*.log
+*.toc
 svg-inkscape
