@@ -4,5 +4,6 @@
 *.blg
 *.lof
 *.log
+*.synctex.gz
 *.toc
 svg-inkscape

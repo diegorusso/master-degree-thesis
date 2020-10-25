@@ -8,9 +8,11 @@
 \usepackage{hyperref}  % Extensive support for hypertext
 \usepackage{indentfirst}  % Indent first paragraph after section header
 \usepackage[utf8x]{inputenc}  % Accept different input encodings
+\usepackage{lipsum}
 \usepackage{listings}  % Typeset source code listings
 \usepackage{setspace}  % Set space between lines
 \usepackage{svg}  % Include and extract SVG pictures
+\setlength{\marginparwidth}{2cm}
 \usepackage{todonotes}
 \usepackage{ucs}  % Extended UTF-8 input encoding support
 \usepackage{url}  % Verbatim with URL-sensitive line breaks
@@ -27,7 +29,6 @@
     linkcolor=blue,
     filecolor=magenta,
     urlcolor=cyan,
-    bookmarks=true,
     pdfpagemode=FullScreen,
 }
 
@@ -44,6 +45,7 @@
     \include{acknowledgments}
     \include{abstract}
     \include{introduction}
+    \include{pruning}
     \include{implementation}
     \include{results}
     \include{conclusions}
