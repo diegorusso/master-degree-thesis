@@ -55,6 +55,9 @@ devices.
 It is easy to understand how this approach can address some of the issues in
 the centralised intelligence: low latency between edge devices and edge servers
 and data exchange and data privacy are some how mitigated.
+It is worth noticing that edge computing is not a replacement for cloud
+computing. On the contrary, it complements cloud computing and both are
+targeting different kind of applications.
 
 If we push a little more the design, the basis of edge computing combined with
 AI creates what is called
@@ -63,7 +66,8 @@ AI creates what is called
 This means that the data collection, caching, processing and analysis happens
 on the device where the data is generated.
 With this model latency, data privacy, network load and communication are all
-contained and improved, giving a better experience to the end user.
+contained and improved, giving a better experience to the end user and making
+the application more reliable.
 
 \begin{figure}[ht]
     \includegraphics[width=10cm]{images/introduction/edge_intelligence.png}
@@ -76,8 +80,12 @@ in our pockets like smart suggestions on the keyboards based on the context of
 the text, photos application with integrated face recognition (note: no
 personal data is sent to the cloud) based on contacts stored on the mobile and
 voice recognition commands for offline translation and on mobile actions.~\cite{xu:2020}
+Other examples are also self-driving cars, real-time applications and medical
+devices but also noise cancellation on video call application like Microsoft
+Teams. Interestingly enough, as counter example Google Meet uses its model on
+the cloud leveraging Google TPU infrastructure.
 
-In this thesis I focus mainly on the edge inference (~\ref{fig:edge_inference})
+In this thesis I focus mainly on the \textbf{edge inference} (~\ref{fig:edge_inference})
 and specifically how the models can be optimised in order to reduce memory
 footprint, size and compression without losing any accuracy in the prediction.
 
@@ -87,9 +95,31 @@ footprint, size and compression without losing any accuracy in the prediction.
     \caption{Edge Inference}\label{fig:edge_inference}
 \end{figure}
 
-\todo{Few more words about edge inference}
+Edge inference is the final step of a model life cycle where the trained model
+is used to infer new and unseen data via a forward pass of the neural network.
+This step happens on the edge device and it presents some challenges due to the
+limited amount of compute power and memory on the device itself.
 
-In \autoref{sec:training} I give an overview of the entire flow of an
+In order to work correctly end efficiently the model needs to go through a
+series of optimizations that decreases the power/memory consumption and latency
+whilst maintaining the accuracy at acceptable levels \- ideally without
+incurring in any decrease.
+
+As the figure~\ref{fig:edge_inference} shows, there are different techniques
+that it can be used to optimise models for edge inference. These are:
+\begin{itemize}
+    \item \textbf{Model design}: let the machines themselves design optimal
+        models or human-invented architectures
+    \item \textbf{Acceleration}: hardware acceleration mainly focus on parallel
+        execution while software acceleration focuses on optimising resource
+        management and compilers, based on compressed models
+    \item \textbf{Compression}: low-rank approximation, knowledge distillation,
+        compact layer design, network pruning and parameters quantisation are
+        few techniques in order to achieve model compression
+\end{itemize}
+
+In this thesis I focus in a specific technique of model pruning.  In
+\autoref{sec:training} I give an overview of the entire flow of an
 intelligence application giving a brief explanation of every step of the flow.
 
 In \autoref{sec:MO} I explain the main techniques for model optimization for
