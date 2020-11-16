@@ -79,7 +79,7 @@ With more powerful end devices we start having edge intelligence applications
 in our pockets like smart suggestions on the keyboards based on the context of
 the text, photos application with integrated face recognition (note: no
 personal data is sent to the cloud) based on contacts stored on the mobile and
-voice recognition commands for offline translation and on mobile actions.~\cite{xu:2020}
+voice recognition commands for offline translation and on mobile actions.
 Other examples are also self-driving cars, real-time applications and medical
 devices but also noise cancellation on video call application like Microsoft
 Teams. Interestingly enough, as counter example Google Meet uses its model on
@@ -101,7 +101,7 @@ This step happens on the edge device and it presents some challenges due to the
 limited amount of compute power and memory on the device itself.
 
 In order to work correctly end efficiently the model needs to go through a
-series of optimizations that decreases the power/memory consumption and latency
+series of optimisations that decreases the power/memory consumption and latency
 whilst maintaining the accuracy at acceptable levels \- ideally without
 incurring in any decrease.
 
@@ -118,11 +118,12 @@ that it can be used to optimise models for edge inference. These are:
         few techniques in order to achieve model compression
 \end{itemize}
 
-In this thesis I focus in a specific technique of model pruning.  In
-\autoref{sec:training} I give an overview of the entire flow of an
+The above introduction~\cite{xu2020edge} sets the background for this thesis where
+I focus on a specific technique of model pruning.
+In \autoref{sec:training} I give an overview of the entire flow of an
 intelligence application giving a brief explanation of every step of the flow.
 
-In \autoref{sec:MO} I explain the main techniques for model optimization for
+In \autoref{sec:MO} I explain the main techniques for model optimisation for
 deployment, explaining what they are, pros and cons.
 
 In \autoref{ch:pruning} I show the pruning technique more in details and
@@ -130,35 +131,154 @@ the section \autoref{sec:heuristic} illustrate the theory behind the per-layer
 pruning configuration with heuristic.
 
 In \autoref{ch:implementation} I show the code I have implemented in
-TensorFlow Model Optimization giving full explanation and some working
+TensorFlow Model Optimisation giving full explanation and some working
 examples.
 
 Finally in \autoref{ch:results} I report experiment results on few well known
 neural networks showing the benefits of this approach.
 
+Unless specified otherwise, \textbf{all the examples, code and documentation
+assume the use of TensorFlow (\url{https://www.tensorflow.org/}) and its
+ecosystem.}
+
 \section{From training to inference}\label{sec:training}
 
-Pillars od edge intelligence: data, model and computation
-Explain the whole flow
-\lipsum[1]
+The pillars of edge intelligence are \textbf{data, model and computation}.
+We need big amount of data in order to train a model that behaves as expected.
+Computation is needed throughout the whole process, from training to edge
+inference.
 
-\section{Model optimizations for deployment}\label{sec:MO}
-* clustering
-* quantization
-* pruning
-Pros and cons of each one following.
-\lipsum[1]
+\begin{figure}[ht]
+    \includegraphics[width=10cm]{images/introduction/training_inference_flow.png}
+    \centering
+    \caption{From training to edge inference}\label{fig:training_inference}
+\end{figure}
+
+The figure \autoref{fig:training_inference} shows a classic life cycle flow of
+an intelligent application. A brief explanation of each step:
+
+\begin{itemize}
+    \item \textbf{Train a model}: once decided what the task is, the right
+        model needs to be used. There are different options: create a custom
+        model, use a pre-trained model or use Transfer Learning on a
+        pre-trained model.
+    \item \textbf{Convert the model}: once the model is trained, it needs to be
+        converted in a special format (\texttt{.tflite}) that can be used on
+        edge devices in efficient manner.
+    \item \textbf{Optimise the model}: that's the key phase where the model is
+        optimised to use less space/memory and to have a faster inference by
+        decreasing the latency. More details will be presented in section
+        \autoref{sec:MO}.
+    \item \textbf{Deploy the model at Edge}: once the model has been optimised,
+        it is ready to be deployed to the edge device.
+    \item \textbf{Make inference at Edge}: this is the last step where finally
+        the model is used to do inference on new data that it has never seen
+        and hopefully giving expected results in a timely fashion.
+\end{itemize}
+
+The above flow shows the big picture of an intelligent application life
+cycle~\cite{tflite:intro} and gives an idea of the complexity behind the
+creation of an edge intelligent application.
+In the rest of the chapter, I will explain what techniques are available in
+TensorFlow in order to \textbf{optimise the model}.
+
+\section{Model optimisations for deployment}\label{sec:MO}
+
+To optimise TensorFlow models, the ecosystem offers \textit{TensorFlow Model
+Optimisation Toolkit} (abbrev. \textit{TFMOT}) which minimizes the complexity
+of optimizing machine learning inference.
+
+Inference efficiency is a critical concern when deploying machine learning
+models because of latency, memory utilization, and in many cases power
+consumption. Particularly on edge devices, such as mobile and Internet of
+Things (IoT), resources are further constrained, and model size and efficiency
+of computation become a major concern.
+
+Computational demand for training grows with the number of models trained on
+different architectures, whereas the computational demand for inference grows
+in proportion to the number of users.
+
+Model optimisation is useful, among other things, for:
+
+\begin{itemize}
+    \item Reducing latency and cost for inference for both cloud and edge
+        devices (e.g.\ mobile, IoT).
+    \item Deploying models on edge devices with restrictions on processing,
+        memory and/or power-consumption.
+    \item Reducing payload size for over-the-air model updates.
+    \item Enabling execution on hardware restricted-to or optimised-for
+        fixed-point operations.
+    \item Optimizing models for special purpose hardware accelerators.
+\end{itemize}
+
+The available techniques are:
+
+\begin{itemize}
+    \item \textbf{Clustering}: Clustered models are those where the original
+        model's parameters are replaced with a smaller number of unique values.
+    \item \textbf{Quantization}: Quantized models are those where we represent
+        the models with lower precision, such as 8-bit integers as opposed to
+        32-bit float. Lower precision is a requirement to leverage certain
+        hardware.
+    \item \textbf{Pruning}: Sparse models are those where connections in
+        between operators (i.e.\ neural network layers) have been pruned,
+        introducing zeros to the parameter tensors.
+\end{itemize}
+
+When pre-optimised models and post-training tools do not satisfy your use case,
+the next step is to try the different training-time tools.
+
+Training time tools piggyback on the model's loss function over the training
+data such that the model can ``adapt'' to the changes brought by the
+optimisation technique.~\cite{tfmot:intro}
 
 \subsection{Clustering}
-\lipsum[1]
+Clustering, or weight sharing, reduces the number of unique weight values in a
+model, leading to benefits for deployment. It first groups the weights of each
+layer into N clusters, then shares the cluster's centroid value for all the
+weights belonging to the cluster.
+
+This technique brings improvements via model compression. Future framework
+support can unlock memory footprint improvements that can make a crucial
+difference for deploying deep learning models on embedded systems with limited
+resources.
+
+According to Google experiments, models can be compressed up to 5x with minimal
+loss of accuracy. Here below results on
+vision~\autoref{fig:clustering_image_classification} and speech
+models~\autoref{fig:clustering_keyword_spotting}.
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/clustering_image_classification.png}
+    \centering
+    \caption{Clustering on Image classification}\label{fig:clustering_image_classification}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/clustering_keyword_spotting.png}
+    \centering
+    \caption{Clustering on Keyword spotting}\label{fig:clustering_keyword_spotting}
+\end{figure}
+
+Size of compressed \texttt{.tflite} refers to the size of the zipped
+\texttt{.tflite} file obtained from the model from the following process:
+
+\begin{enumerate}
+    \item Serialize the Keras model into \texttt{.h5} file
+    \item Convert the \texttt{.h5} file into \texttt{.tflite}
+    \item Compress the \texttt{.tflite} file into a zip
+\end{enumerate}
+
+The weight clustering implementation is based on the \textit{Deep Compression:
+Compressing Deep Neural Networks With Pruning, Trained Quantization and Huffman
+Coding}~\cite{han2015deep}~\cite{tfmot:clustering}
 
 \subsection{Quantization}
-\lipsum[1]
+~\cite{tfmot:quantization_post_training}
+~\cite{tfmot:quantization_training}
 
 \subsection{Pruning}
-\lipsum[1]
+~\cite{tfmot:pruning}
 
 \subsection{Combine multiple optimizations}
-\lipsum[1]
-
-Bibliographic citation
