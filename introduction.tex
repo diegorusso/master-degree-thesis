@@ -114,7 +114,7 @@ that it can be used to optimise models for edge inference. These are:
         execution while software acceleration focuses on optimising resource
         management and compilers, based on compressed models
     \item \textbf{Compression}: low-rank approximation, knowledge distillation,
-        compact layer design, network pruning and parameters quantisation are
+        compact layer design, network pruning and parameters quantization are
         few techniques in order to achieve model compression
 \end{itemize}
 
@@ -275,8 +275,73 @@ Compressing Deep Neural Networks With Pruning, Trained Quantization and Huffman
 Coding}~\cite{han2015deep}~\cite{tfmot:clustering}
 
 \subsection{Quantization}
-~\cite{tfmot:quantization_post_training}
-~\cite{tfmot:quantization_training}
+There are two forms of quantization: \textbf{post-training quantization} and
+\textbf{quantization aware training (QAT)}. The former is easy to use whilst
+the latter often offers better model accuracy.
+
+\subsubsection{Quantization aware training}
+Quantization aware training emulates inference-time quantization, creating a
+model that downstream tools will use to produce actually quantized models. The
+quantized models use lower-precision (e.g. 8-bit instead of 32-bit float),
+leading to benefits during deployment.
+
+Quantization brings improvements via model compression and latency reduction.
+With default API, Google has observed that the model shrinks by 4x and 1.5 - 4x
+improvements in CPU latency. Eventually, latency improvements can be seen on
+compatible machine learning accelerators (e.g.: EdgeTPU and NNAPI).
+
+At the time of writing, QAT is still under development and has some limitations
+regarding to its functionality (distributed training, limited support for
+Subclassed Models, RNN/LSTM models, stable APIs, etc\ldots)
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/qat_image_classification.png}
+    \centering
+    \caption{QAT on Image Classification}\label{fig:qat_image_classification}
+\end{figure}
+
+The models in \autoref{fig:qat_image_classification} were tested on Imagenet
+and evaluated in both TensorFlow and TFLite.
+
+For background on something similar, see the \textit{Quantization and Training
+of Neural Networks for Efficient Integer-Arithmetic-Only Inference} paper
+\cite{Jacob_2018}.
+This paper introduces some concepts that this tool uses.
+The implementation is not exactly the same, and there are additional concepts
+used in this tool (e.g.\ per-axis quantization).~\cite{tfmot:quantization_training}
+
+\subsubsection{Post-training Quantization}
+Post-training quantization includes general techniques to reduce CPU and
+hardware accelerator latency, processing, power, and model size with little
+degradation in model accuracy. These techniques can be performed on an
+already-trained float TensorFlow model and applied during TensorFlow Lite
+conversion. These techniques are enabled as options in the TensorFlow Lite
+converter.
+
+Two types of post-quantization exist:
+\begin{itemize}
+    \item \textbf{Quantizing weights}: Weights can be converted to types with
+        reduced precision, such as 16 bit floats or 8 bit integers. Google
+        generally recommends 16-bit floats for GPU acceleration and 8-bit
+        integer for CPU execution. At inference, the most critically intensive
+        parts are computed with 8 bits instead of floating point.
+    \item \textbf{Full integer quantization of weights and activations}:
+        Improve latency, processing, and power usage, and get access to
+        integer-only hardware accelerators by making sure both weights and
+        activations are quantized.  This requires a small representative data
+        set. The resulting model will still take float input and output for
+        convenience.
+\end{itemize}
+
+There are several post-training quantization options to choose from.
+\autoref{fig:qat_techniques} shows a summary table of the choices and the
+benefits they provide.~\cite{tfmot:quantization_post_training}
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/post_quantization_techniques.png}
+    \centering
+    \caption{Post-quantization Techniques}\label{fig:post_quantization_techniques}
+\end{figure}
 
 \subsection{Pruning}
 ~\cite{tfmot:pruning}
