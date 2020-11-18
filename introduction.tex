@@ -214,13 +214,14 @@ Model optimisation is useful, among other things, for:
 The available techniques are:
 
 \begin{itemize}
-    \item \textbf{Clustering}: Clustered models are those where the original
-        model's parameters are replaced with a smaller number of unique values.
+    \item \textbf{Weight Clustering}: Clustered models are those where the
+        original model's parameters are replaced with a smaller number of
+        unique values.
     \item \textbf{Quantization}: Quantized models are those where we represent
         the models with lower precision, such as 8-bit integers as opposed to
         32-bit float. Lower precision is a requirement to leverage certain
         hardware.
-    \item \textbf{Pruning}: Sparse models are those where connections in
+    \item \textbf{Weight Pruning}: Sparse models are those where connections in
         between operators (i.e.\ neural network layers) have been pruned,
         introducing zeros to the parameter tensors.
 \end{itemize}
@@ -232,7 +233,7 @@ Training time tools piggyback on the model's loss function over the training
 data such that the model can ``adapt'' to the changes brought by the
 optimisation technique.~\cite{tfmot:intro}
 
-\subsection{Clustering}
+\subsection{Weight Clustering}
 Clustering, or weight sharing, reduces the number of unique weight values in a
 model, leading to benefits for deployment. It first groups the weights of each
 layer into N clusters, then shares the cluster's centroid value for all the
@@ -251,14 +252,14 @@ models~\autoref{fig:clustering_keyword_spotting}.
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/introduction/clustering_image_classification.png}
     \centering
-    \caption{Clustering on Image classification}\label{fig:clustering_image_classification}
+    \caption{Weight Clustering on Image Classification}\label{fig:clustering_image_classification}
 \end{figure}
 
 
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/introduction/clustering_keyword_spotting.png}
     \centering
-    \caption{Clustering on Keyword spotting}\label{fig:clustering_keyword_spotting}
+    \caption{Weight Clustering on Keyword Spotting}\label{fig:clustering_keyword_spotting}
 \end{figure}
 
 Size of compressed \texttt{.tflite} refers to the size of the zipped
@@ -286,8 +287,8 @@ quantized models use lower-precision (e.g. 8-bit instead of 32-bit float),
 leading to benefits during deployment.
 
 Quantization brings improvements via model compression and latency reduction.
-With default API, Google has observed that the model shrinks by 4x and 1.5 - 4x
-improvements in CPU latency. Eventually, latency improvements can be seen on
+With default API, Google has observed that the model shrinks by 4x and 1.5 \-
+4x improvements in CPU latency. Eventually, latency improvements can be seen on
 compatible machine learning accelerators (e.g.: EdgeTPU and NNAPI).
 
 At the time of writing, QAT is still under development and has some limitations
@@ -304,8 +305,8 @@ The models in \autoref{fig:qat_image_classification} were tested on Imagenet
 and evaluated in both TensorFlow and TFLite.
 
 For background on something similar, see the \textit{Quantization and Training
-of Neural Networks for Efficient Integer-Arithmetic-Only Inference} paper
-\cite{Jacob_2018}.
+of Neural Networks for Efficient Integer-Arithmetic-Only Inference}
+paper~\cite{Jacob_2018}.
 This paper introduces some concepts that this tool uses.
 The implementation is not exactly the same, and there are additional concepts
 used in this tool (e.g.\ per-axis quantization).~\cite{tfmot:quantization_training}
@@ -334,8 +335,8 @@ Two types of post-quantization exist:
 \end{itemize}
 
 There are several post-training quantization options to choose from.
-\autoref{fig:qat_techniques} shows a summary table of the choices and the
-benefits they provide.~\cite{tfmot:quantization_post_training}
+\autoref{fig:post_quantization_techniques} shows a summary table of the choices
+and the benefits they provide.~\cite{tfmot:quantization_post_training}
 
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/introduction/post_quantization_techniques.png}
@@ -343,7 +344,34 @@ benefits they provide.~\cite{tfmot:quantization_post_training}
     \caption{Post-quantization Techniques}\label{fig:post_quantization_techniques}
 \end{figure}
 
-\subsection{Pruning}
-~\cite{tfmot:pruning}
+\subsection{Weight Pruning}
+Magnitude-based weight pruning gradually zeroes out model weights during the
+training process to achieve model sparsity. Sparse models are easier to
+compress, and we can skip the zeroes during inference for latency improvements.
+
+This technique brings improvements via model compression. In the future,
+framework support for this technique will provide latency improvements.
+Google has seen up to 6x improvements in model compression with minimal loss of
+accuracy.
+
+The technique is being evaluated in various speech applications, such as speech
+recognition and text-to-speech, and has been experimented on across various
+visioni (see \autoref{fig:pruning_image_classification}) and translation
+models (see \autoref{fig:pruning_translation}).~\cite{tfmot:pruning}
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/pruning_image_classification.png}
+    \centering
+    \caption{Weight Pruning on Image Classification}\label{fig:pruning_image_classification}
+\end{figure}
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/pruning_translation.png}
+    \centering
+    \caption{Weight Pruning on Translation}\label{fig:pruning_translation}
+\end{figure}
+
+In \autoref{ch:pruning} I will go more in details of this technique.
 
 \subsection{Combine multiple optimizations}
+\lipsum[1]
