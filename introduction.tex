@@ -320,12 +320,37 @@ The weight clustering implementation is based on the \textit{Deep Compression:
 Compressing Deep Neural Networks With Pruning, Trained Quantization and Huffman
 Coding}~\cite{han2015deep}~\cite{tfmot:clustering}
 
-\todo{Integrate with TF blog post}
-
 \subsection{Quantization}
 There are two forms of quantization: \textbf{post-training quantization} and
 \textbf{quantization aware training (QAT)}. The former is easy to use whilst
 the latter often offers better model accuracy.
+
+\subsubsection{Quantization is lossy}
+Quantization is the process of transforming an ML model into an equivalent
+representation that uses parameters and computations at a lower precision.
+This improves the model's execution performance and efficiency
+
+However, the process of going from higher to lower precision is lossy in
+nature. As seen in \autoref{fig:quantization}, quantization squeezes a small
+range of floating-point values into a fixed number of information buckets.
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/quantization.png}
+    \centering
+    \caption{Quantization}\label{fig:quantization}
+\end{figure}
+
+This leads to information loss. The parameters (or weights) of a model can now
+only take a small set of values and the minute differences between them are
+lost. For example, all values in range [2.0, 2.3] may now be represented in one
+single bucket. This is similar to rounding errors when fractional values are
+represented as integers.
+
+There are also other sources of loss. When these lossy numbers are used in
+several multiply-add computations, these losses accumulate. Further, int8
+values, which accumulate into int32 integers, need to be rescaled back to int8
+values for the next computation, thus introducing more computational
+error.~\cite{tfmot:quantization_blog}
 
 \subsubsection{Quantization aware training}
 Quantization aware training emulates inference-time quantization, creating a
@@ -390,7 +415,25 @@ and the benefits they provide.~\cite{tfmot:quantization_post_training}
     \centering
     \caption{Post-quantization Techniques}\label{fig:post_quantization_techniques}
 \end{figure}
-\todo{Integrate with TF blog post}
+
+Compared to their float counterparts, quantized models are up to 2–4x faster on
+CPU and 4x smaller (See \autoref{fig:post_quantization_latency}).
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/post_quantization_latency.png}
+    \centering
+    \caption{Post-quantization latency}\label{fig:post_quantization_latency}
+\end{figure}
+
+With just 100 calibration images from ImageNet dataset, fully quantized integer
+models have comparable accuracy with their float versions (MobileNet v1 loses
+1\%) (See \autoref{fig:post_quantization_accuracy}).
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/post_quantization_accuracy.png}
+    \centering
+    \caption{Post-quantization accuracy}\label{fig:post_quantization_accuracy}
+\end{figure}
 
 \subsection{Weight Pruning}
 Magnitude-based weight pruning gradually zeroes out model weights during the
@@ -420,7 +463,6 @@ models (see \autoref{fig:pruning_translation}).~\cite{tfmot:pruning}
 \end{figure}
 
 In \autoref{ch:pruning} I will go more in details of this technique.
-\todo{Add image of pruning}
 
 \subsection{Combine multiple optimisations}
 The optimisation techniques shown in \autoref{sec:MO} bring excellent results
@@ -430,7 +472,7 @@ model can be optimised using pruning, post-training quantization and then
 compress the result with any compression algorithm (e.g.\ zip, gzip)
 Similarly the model can be optimised using clustering, post-training
 quantization and compression.
-The optimization can be pushed further including all the previous techniques as
+The optimisation can be pushed further including all the previous techniques as
 shown in \autoref{fig:collaborative_optimisation}:
 
 \begin{figure}[ht]
@@ -451,10 +493,18 @@ shown in \autoref{fig:collaborative_optimisation}:
 
 The paper \textit{Deep Compression: Compressing Deep Neural Networks With
 Pruning, Trained Quantization and Huffman Coding}~\cite{han2015deep} shows an
-optimization pipeline
+optimisation pipeline (See \autoref{fig:combine_multiple_optimisations})
 
-\todo{Finish this with figure in the paper and results}
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/combine_multiple_optimisations.png}
+    \centering
+    \caption{Combine multiple optimisations}\label{fig:combine_multiple_optimisations}
+\end{figure}
 
-
-
-
+\autoref{fig:combine_multiple_optimisations} shows the three stage compression
+pipeline: pruning, quantization (with clustering) and Huffman coding. Pruning
+reduces the number of weights by 10×, while quantization/clustering further
+improves the compression rate: between 27× and 31×. Huffman coding gives more
+compression: between 35× and 49×. The compression rate already included the
+meta-data for sparse representation. The compression scheme doesn't incur any
+accuracy loss.
