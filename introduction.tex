@@ -186,7 +186,7 @@ TensorFlow in order to \textbf{optimise the model}.
 
 To optimise TensorFlow models, the ecosystem offers \textit{TensorFlow Model
 Optimisation Toolkit} (abbrev. \textit{TFMOT}) which minimizes the complexity
-of optimizing machine learning inference.
+of optimising machine learning inference.
 
 Inference efficiency is a critical concern when deploying machine learning
 models because of latency, memory utilization, and in many cases power
@@ -208,7 +208,7 @@ Model optimisation is useful, among other things, for:
     \item Reducing payload size for over-the-air model updates.
     \item Enabling execution on hardware restricted-to or optimised-for
         fixed-point operations.
-    \item Optimizing models for special purpose hardware accelerators.
+    \item Optimising models for special purpose hardware accelerators.
 \end{itemize}
 
 The available techniques are:
@@ -238,6 +238,51 @@ Clustering, or weight sharing, reduces the number of unique weight values in a
 model, leading to benefits for deployment. It first groups the weights of each
 layer into N clusters, then shares the cluster's centroid value for all the
 weights belonging to the cluster.
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/weight_clustering.png}
+    \centering
+    \caption{Weight Clustering}\label{fig:weight_clustering}
+\end{figure}
+
+A brief explanation of \autoref{fig:weight_clustering}. For example a layer in
+the model contains a 4$\times$4 matrix of weights (represented by the
+``weight matrix'' in \autoref{fig:weight_clustering}). Each weight is stored
+using a float32 value. When the model is saved, 16 unique float32 values are
+stored to disk.
+
+Weight clustering reduces the size of the model by replacing similar weights in
+a layer with the same value. These values are found by running a clustering
+algorithm over the model’s trained weights. The user can specify the number of
+clusters (in this case, 4). This step is shown in ``Get centroids'' in the
+diagram, and the 4 centroid values are shown in the ``Centroid'' table. Each
+centroid value has an index (0\-3).
+
+Next, each weight in the weight matrix is replaced with its centroid’s index.
+This step is shown in ``Assign indices''. Now, instead of storing the original
+weight matrix, the weight clustering algorithm can store the modified matrix
+shown in ``Pull indices'' (containing the index of the centroid values), and
+the centroid values themselves.
+
+In this case, the size has been reduced from 16 unique floats, to 4 floats and
+16 2-bit indices. The savings increase with larger matrix sizes.
+
+Note that even if we still stored 16 floats, they now have just 4 distinct
+values. Common compression tools (like zip) can now take advantage of the
+redundancy in the data to achieve higher compression.
+
+Weight clustering has an immediate advantage in reducing model storage and
+transfer size across serialization formats, as a model with shared parameters
+has a much higher compression rate than one without. This is similar to a
+sparse (pruned) model, except that the compression benefit is achieved through
+reducing the number of unique weights, while pruning achieves it through
+setting weights below a certain threshold to zero. Once a model is clustered,
+the benefit of the reduced size is available by passing it through any common
+compression tool.
+
+To further unlock the improvements in memory usage and speed at inference time
+associated with clustering, specialized run-time or compiler software and
+dedicated machine learning hardware is required.~\cite{tfmot:clustering_blog}
 
 This technique brings improvements via model compression. Future framework
 support can unlock memory footprint improvements that can make a crucial
@@ -274,6 +319,8 @@ Size of compressed \texttt{.tflite} refers to the size of the zipped
 The weight clustering implementation is based on the \textit{Deep Compression:
 Compressing Deep Neural Networks With Pruning, Trained Quantization and Huffman
 Coding}~\cite{han2015deep}~\cite{tfmot:clustering}
+
+\todo{Integrate with TF blog post}
 
 \subsection{Quantization}
 There are two forms of quantization: \textbf{post-training quantization} and
@@ -343,6 +390,7 @@ and the benefits they provide.~\cite{tfmot:quantization_post_training}
     \centering
     \caption{Post-quantization Techniques}\label{fig:post_quantization_techniques}
 \end{figure}
+\todo{Integrate with TF blog post}
 
 \subsection{Weight Pruning}
 Magnitude-based weight pruning gradually zeroes out model weights during the
@@ -372,6 +420,41 @@ models (see \autoref{fig:pruning_translation}).~\cite{tfmot:pruning}
 \end{figure}
 
 In \autoref{ch:pruning} I will go more in details of this technique.
+\todo{Add image of pruning}
 
-\subsection{Combine multiple optimizations}
-\lipsum[1]
+\subsection{Combine multiple optimisations}
+The optimisation techniques shown in \autoref{sec:MO} bring excellent results
+in terms of model size and latency.
+The model can be optimised further combining those techniques. For instance the
+model can be optimised using pruning, post-training quantization and then
+compress the result with any compression algorithm (e.g.\ zip, gzip)
+Similarly the model can be optimised using clustering, post-training
+quantization and compression.
+The optimization can be pushed further including all the previous techniques as
+shown in \autoref{fig:collaborative_optimisation}:
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/introduction/collaborative_optimisation.png}
+    \centering
+    \caption{Collaborative optimisation}\label{fig:collaborative_optimisation}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Weight Pruning}: remove all near-zero weights
+    \item \textbf{Weight Clustering}: group all the remaining weights in
+        different clusters
+    \item \textbf{Quantization}: the weights representing the clusters are
+        quantized from floating point at 32 bit to integer at 16/8bit
+    \item \textbf{Compression}: the last step is to apply a compression
+        algorithm to the model in order to improve deployment
+\end{enumerate}
+
+The paper \textit{Deep Compression: Compressing Deep Neural Networks With
+Pruning, Trained Quantization and Huffman Coding}~\cite{han2015deep} shows an
+optimization pipeline
+
+\todo{Finish this with figure in the paper and results}
+
+
+
+
