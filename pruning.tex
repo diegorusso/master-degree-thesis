@@ -1,16 +1,108 @@
 \chapter{Pruning}\label{ch:pruning}
-\lipsum[1]
+In \autoref{ch:introduction} I gave a brief explanation of few techniques for
+doing model optimisation on a neural network. Pruning is one of these and in
+the first part of this chapter I give a more detailed explanation.
+The second part instead focuses on the core of the thesis: per-layer pruning
+configuration with heuristic.
+
+Despite being technical, this chapter is still fairly theoretical and I defer
+any code and implementation to \autoref{ch:implementation}.
 
 \section{What's Pruning?}
-\lipsum[1]
+Neural network pruning is the task of reducing the size of a network by
+removing parameters. This compression affects the size of the model, the
+latency, the amount of memory and the compute power needed to run the
+inference. These metrics need to balanced with the accuracy of the model
+itself. I give a more detailed analysis about this trade-off in
+\autoref{subsec:tradeoff}
+
+Pruning has been used since the late 1980s but has seen an explosion of
+interest in the past decade thanks to the rise of deep neural networks.
+It sets its roots with a couple of classic papers:\textit{Optimal Brain
+Damage}~\cite{lecun-90b} and \textit{Optimal Brain Surgeon}\cite{hassibi-93}
+
+In the last decade (2010\-2020) a few dozens of papers have been published in
+literature about pruning and all of them have been showing that pruning is an
+effective technique that can be applied to a variety of neural network on
+different fields (image and speech recognition, text processing, etc\ldots).
+Moreover they highlights that pruning is a versatile technique as, I said
+earlier, it has a positive impact on multiple metrics, all important for a
+better edge deployment of the model.
+
+How does pruning reduce the size of a model? The basic principle is to prune
+(remove) unnecessary neurones or weights (see \autoref{fig:pruning_weights_neurons}):
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/pruning_weights_neurons.png}
+    \centering
+    \caption{Pruning weights and neurons}\label{fig:pruning_weights_neurons}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{weights}: this is done by setting individual parameters to
+        zero and making the network sparse. The effect will be to maintain the
+        same architecture of the network but lowering down the number of
+        parameters.
+    \item \textbf{neurons}: this is done by removing the entire node from the
+        network with all its connections. This would make the network
+        architecture smaller but with the target to keep the accuracy of the
+        starting network.
+\end{itemize}
 
 \subsection{Pruning techniques}
+The main problem in pruning is to understand what to prune. Of course the goal
+is to remove nodes and/or weights that are less useful. There are different
+methods to understand what to prune with very little or no effect on accuracy.
+Below e brief description of different techniques.
+
+\subsubsection{Magnitude Pruning}
+Functions can be a very simple case of a neural network. Its coefficients can
+be changed in order to learn the input data points. There are coefficients
+that, despite changing their values, they won't change the behaviour of the
+function and these are referred as \textbf{non-significant}.
+In neural networks these coefficients are weights and biases: they are
+\textbf{trainable parameters} and the same non-significant concept can be
+applied to them with bit more complexity.
+
+During the back-propagation (gradient descent) some weights are updated with
+larger gradient magnitudes (both positive and negative) than the others.
+These weights are the \textbf{significant} ones and the weights receiving very
+small gradients can be considered as \textbf{non-significant} as their impact
+is minimal to the optimization of the loss function.
+After the training, the weight magnitude of every layer can be explored and
+check which weights are significant.
+
+So the weight magnitude is the criteria for pruning the neural network.
+At this point a \textbf{threshold} is specified and all the weights below this
+threshold are considered non-significant. This is usually combined with a
+\textbf{sparsity target} the network should achieve.
+The \textbf{non-significant weights will be zeroed}, cancelling effectively
+their impact in the neural network.
+This can be applied to biases as well (to any trainable parameter to be
+precise).
+
+Once the pruning is done it's always advisable to retrain the network in order
+to compensate for any drop in performance. It's worth noticing that during the
+retraining the pruned weights won't be updated.~\cite{magnitude_pruning}
+
+Magnitude pruning is the technique I will be using in
+\autoref{ch:implementation}.
+
+\subsubsection{Channel Pruning}
+\lipsum[1]
+
+\subsubsection{Structured Pruning}
+\lipsum[1]
+
+\subsection{Pruning pipeline}
+Training, pruning, fine-tuning
+1506.02626 \- Learning both Weights and Connections for Efficient Neural Networks
 \lipsum[1]
 
 \subsection{Practical examples with Pruning}
 \lipsum[1]
 
-\subsection{Sparsity-accuracy trade-offs}
+\subsection{Sparsity-accuracy trade-offs}\label{subsec:tradeoff}
 \lipsum[1]
 
 \section{Per-Layer Pruning Configuration With Heuristic}\label{sec:heuristic}
