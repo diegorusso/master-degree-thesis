@@ -33,7 +33,7 @@ How does pruning reduce the size of a model? The basic principle is to prune
 (remove) unnecessary neurones or weights (see \autoref{fig:pruning_weights_neurons}):
 
 \begin{figure}[ht]
-    \includegraphics[width=\textwidth]{images/pruning/pruning_weights_neurons.png}
+    \includegraphics[width=8cm]{images/pruning/pruning_weights_neurons.png}
     \centering
     \caption{Pruning weights and neurons}\label{fig:pruning_weights_neurons}
 \end{figure}
@@ -89,7 +89,87 @@ Magnitude pruning is the technique I will be using in
 \autoref{ch:implementation}.
 
 \subsubsection{Channel Pruning}
-\lipsum[1]
+Channel pruning is a technique specifically for CNN (Convolutional Neural
+Network) as it rely on the architecture of this type of networks. The building
+blocks of a CNN are (see \autoref{fig:cnn}):
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/cnn.jpeg}
+    \centering
+    \caption{Convolutional Neural Network Architecture}\label{fig:cnn}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Convolutional layer}: it is the core building block of a CNN\@.
+        A convolution is the simple application of a filter to an input that
+        results in an activation. Repeated application of the same filter to an
+        input results in a map of activations called a feature map, indicating
+        the locations and strength of a detected feature in an input, such as
+        an image.
+    \item \textbf{Pooling layer}: it provide an approach to down sampling
+        feature maps by summarizing the presence of features in patches of the
+        feature map. Two common pooling methods are average pooling and max
+        pooling that summarize the average presence of a feature and the most
+        activated presence of a feature respectively.
+    \item \textbf{ReLU layer}: ReLU stands for \textbf{Rectified Linear Unit}
+        and it is a piecewise linear function that will output the input
+        directly if it is positive, otherwise, it will output zero. It has
+        become the default activation function for many types of neural
+        networks because a model that uses it is easier to train and often
+        achieves better performance (see \autoref{fig:relu})
+\begin{figure}[ht]
+    \includegraphics[width=8cm]{images/pruning/relu.png}
+    \centering
+    \caption{Rectified Linear Unit activation function}\label{fig:relu}
+\end{figure}
+    \item \textbf{Fully connected layer}: after several convolutional and max
+        pooling layers, the high-level reasoning in the neural network is done
+        via fully connected layers. Neurons in a fully connected layer have
+        connections to all activations in the previous layer, as seen in
+        non-convolutional artificial neural networks.
+    \item \textbf{Loss layer}: it specifies how training penalizes the
+        deviation between the predicted (output) and true labels and is
+        normally the final layer of a neural network. Various loss functions
+        appropriate for different tasks may be used. Softmax loss is used for
+        predicting a single class of K mutually exclusive classes.
+        Sigmoid cross-entropy loss is used for predicting K independent
+        probability values in [0, 1]. Euclidean loss is used for regressing to
+        real-valued labels.\cite{cnn}
+\end{itemize}
+
+\autoref{fig:channel_pruning} shows the channel pruning algorithm for a
+single convolutional layer.
+The aim is to reduce the number of channels of feature map B, while maintaining
+outputs in feature map C.
+Once the channels are pruned, corresponding channels of the filters that take
+these channels as input can be removed. Moreover, filters that produce these
+channels can be removed as well. It is clear that channel pruning involves
+two key steps.
+
+\begin{figure}[ht]
+    \includegraphics[width=8cm]{images/pruning/channel_pruning.png}
+    \centering
+    \caption{Channel Pruning for accelerating a CNN}\label{fig:channel_pruning}
+\end{figure}
+
+The first is the channel selection, since a proper channel combination to
+maintain as much information needs to be selected.
+The second is reconstruction. The following feature maps need to be
+reconstructed using the selected channels. Motivated by this, the process is an
+iterative two-step algorithm.
+
+In the first step, the aim is to select most representative channels.
+Since an exhaustive search is infeasible even for tiny networks, a LASSO
+regression based method needs to be performed to figure out representative
+channels and prune redundant ones.
+
+In the second step, outputs are reconstructed with remaining channels with
+linear least squares.
+
+The whole model can be pruned applying the approach layer by layer
+sequentially. For each layer, input volumes are obtained from the current input
+feature map, and output volumes from the output feature map of the un-pruned
+model.\cite{He_2017}
 
 \subsubsection{Structured Pruning}
 \lipsum[1]
