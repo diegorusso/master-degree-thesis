@@ -172,7 +172,30 @@ feature map, and output volumes from the output feature map of the un-pruned
 model.\cite{He_2017}
 
 \subsubsection{Structured Pruning}
-\lipsum[1]
+Pruning techniques can be broadly categorized as structured or unstructured.
+Unstructured pruning does not follow a specific geometry or constraint. In most
+cases, this technique needs extra information to represent sparse locations. It
+depends on sparse representation for computational benefits. On the other hand,
+structured sparsity places non-zero parameters at well-defined locations. This
+kind of constraint enables modern CPUs and graphics processing units (GPUs) to
+easily exploit computational savings.
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/structured_pruning.png}
+    \centering
+    \caption{Structured Pruning}\label{fig:structured_pruning}
+\end{figure}
+
+Channel, kernel and intra-kernel sparsity could be a mean of structured
+pruning. In channel level pruning, all the incoming and outgoing weights
+to/from a feature map are pruned. Channel level pruning can directly produce a
+lightweight network.
+Kernel level pruning drops a full k × k kernel, whereas the intra-kernel
+sparsity prunes weights in a kernel. The intra kernel strided sparsity can
+significantly speed-up convolution layer processing.
+The kernel level pruning is a special case of intra-kernel sparsity with
+100\% pruning. These granularities can be applied in various combinations and
+different orders.\cite{Anwar_2017}
 
 \subsection{Pruning pipeline}
 Training, pruning, fine-tuning
