@@ -198,14 +198,75 @@ The kernel level pruning is a special case of intra-kernel sparsity with
 different orders.\cite{Anwar_2017}
 
 \subsection{Pruning pipeline}
-Training, pruning, fine-tuning
-1506.02626 \- Learning both Weights and Connections for Efficient Neural Networks
+So far I've been explaining what pruning is and what kind of techniques exist
+to pruning neural networks. Let's take a step back and see how these techniques
+fit the big picture of the pruning pipeline.
+There are different ways to apply pruning to neural networks:
+
+\subsubsection{Traditional network pruning pipeline}
+
+This is the traditional approach for pruning a neural network. It prunes
+redundant connections using a three-step method:
+\begin{enumerate}
+    \item Train the network to learn which connections are important: unlike
+        conventional training, the final values of the weights are not learnt,
+        but rather which connections are important.
+    \item Prune the unimportant connections: all connections with weights below
+        a threshold are removed from the network, converting a dense network
+        into a sparse network.
+    \item Retrain the network to fine tune the weights of the remaining
+        connections: that's the critical step because if the pruned network is
+        used without retraining, accuracy is significantly impacted.
+\end{enumerate}
+
+Learning the right connections is an \textbf{iterative process}. Pruning
+followed by a retraining is one iteration, after many such iterations the
+minimum number connections could be found.
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/traditional_pipeline.png}
+    \centering
+    \caption{Traditional pruning pipeline}\label{fig:traditional_pipeline}
+\end{figure}
+
+After pruning connections, neurons with zero input connections or zero output
+connections may be safely pruned. This pruning is furthered by removing all
+connections to or from a pruned neuron. The retraining phase automatically
+arrives at the result where dead neurons will have both zero input connections
+and zero output connections.
+This occurs due to gradient descent and regularization. A neuron that has zero
+input connections (or zero output connections) will have no contribution to the
+final loss, leading the gradient to be zero for its output connection (or input
+connection), respectively.
+Only the regularization term will push the weights to zero. Thus, the dead
+neurons will be automatically removed during retraining.~\cite{han2015learning}
+
+In this thesis I focus mainly on the traditional pipeline but the work can be
+easily used with other pipelines.
+
+\subsubsection{Training from scratch}
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/liu_pipeline.png}
+    \centering
+    \caption{Pruning pipeline with training from scratch}\label{fig:liu_pipeline}
+\end{figure}
+test~\cite{liu2018rethinking}
+
+\subsubsection{Training from scratch with initial random weights}
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/pruning/scratch_pipeline.png}
+    \centering
+    \caption{Pruning pipeline with training from scratch and initial random weights}\label{fig:scratch_pipeline}
+\end{figure}
+test~\cite{Wang_2020}
+
+
+
+
+\subsection{Sparsity-accuracy trade-offs}\label{subsec:tradeoff}
 \lipsum[1]
 
 \subsection{Practical examples with Pruning}
-\lipsum[1]
-
-\subsection{Sparsity-accuracy trade-offs}\label{subsec:tradeoff}
 \lipsum[1]
 
 \section{Per-Layer Pruning Configuration With Heuristic}\label{sec:heuristic}
