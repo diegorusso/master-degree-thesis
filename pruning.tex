@@ -245,12 +245,44 @@ In this thesis I focus mainly on the traditional pipeline but the work can be
 easily used with other pipelines.
 
 \subsubsection{Training from scratch}
+Another pipeline is ``training from scratch'' where the network pruning is
+rethought.
+Generally, there are two common beliefs behind this pruning procedure. First,
+it is believed that starting with training a large, over-parameterized network
+is important as it provides a high-performance model (due to stronger
+representation & optimization power) from which one can safely remove a set of
+redundant parameters without significantly hurting the accuracy. Therefore,
+this is usually believed, and reported to be superior to directly training a
+smaller network from scratch \- a commonly used baseline approach.
+Second, both the pruned architecture and its associated weights are believed to
+be essential for obtaining the final efficient model. Thus most existing
+pruning techniques choose to fine-tune a pruned model instead of training it
+from scratch. The preserved weights after pruning are usually considered to be
+critical.
+
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/pruning/liu_pipeline.png}
     \centering
     \caption{Pruning pipeline with training from scratch}\label{fig:liu_pipeline}
 \end{figure}
-test~\cite{liu2018rethinking}
+
+With training from scratch, both of the beliefs mentioned above are not
+necessarily true for structured pruning methods, which prune at the levels of
+convolution channels or larger.
+For structured pruning methods with predefined target network architectures,
+directly training the small target model from random initialization can achieve
+the same, if not better, performance, as the model obtained from the
+three-stage pipeline.
+For structured pruning methods with auto-discovered target networks, training
+the pruned model from scratch can also achieve comparable or even better
+performance than fine-tuning.
+Interestingly, for unstructured pruning method that prunes individual
+parameters, training from scratch can mostly achieve comparable accuracy with
+pruning and fine-tuning on smaller-scale datasets, but fails to do so on the
+large-scale ImageNet benchmark.
+Note that in some cases, if a pre-trained large model is already available,
+pruning and fine-tuning from it can save the training time required to obtain
+the efficient model.~\cite{liu2018rethinking}
 
 \subsubsection{Training from scratch with initial random weights}
 \begin{figure}[ht]
