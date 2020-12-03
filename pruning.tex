@@ -248,9 +248,9 @@ easily used with other pipelines.
 Another pipeline is ``training from scratch'' where the network pruning is
 rethought.
 Generally, there are two common beliefs behind this pruning procedure. First,
-it is believed that starting with training a large, over-parameterized network
+it is believed that starting with training a large, over-parametrized network
 is important as it provides a high-performance model (due to stronger
-representation & optimization power) from which one can safely remove a set of
+representation \& optimization power) from which one can safely remove a set of
 redundant parameters without significantly hurting the accuracy. Therefore,
 this is usually believed, and reported to be superior to directly training a
 smaller network from scratch \- a commonly used baseline approach.
@@ -284,16 +284,49 @@ Note that in some cases, if a pre-trained large model is already available,
 pruning and fine-tuning from it can save the training time required to obtain
 the efficient model.~\cite{liu2018rethinking}
 
-\subsubsection{Training from scratch with initial random weights}
+\subsubsection{Pruning from scratch}
+In this pipeline, pre-training an over-parametrized model is not necessary
+step for obtaining the target pruned structure. In fact, a fully-trained
+over-parametrized model will reduce the search space for the pruned structure.
+
+Is it necessary for learning the pruned model structure from pre-trained
+weights?
+After some research it has been found that the answer is quite surprising: an
+effective pruned structure does not have to be learned from pre-trained
+weights.
+
+It has been empirically shown that the pruned structures discovered from
+pre-trained weights tend to be homogeneous, which limits the possibility of
+searching for better structure.
+
+In  fact, more diverse and effective pruned structures can be discovered by
+directly pruning from randomly initialized weights, including  potential models
+with better performance. Based  on  the  above  observations, it has been
+created a novel network pruning pipeline where a pruned network structure can
+be directly learned from the randomly initialized weights (see
+\autoref{fig:scratch_pipeline}). This pruning pipeline allows \textbf{pruning
+from scratch.}
+
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/pruning/scratch_pipeline.png}
     \centering
-    \caption{Pruning pipeline with training from scratch and initial random weights}\label{fig:scratch_pipeline}
+    \caption{Pruning pipeline with pruning from scratch}\label{fig:scratch_pipeline}
 \end{figure}
-test~\cite{Wang_2020}
 
+Specifically, it is used a similar technique in Network Slimming to learn the
+channel importance by associating scalar gate values with each layer.
+The channel importance is optimized to improve the model performance under the
+sparsity regularization.
+What is different from previous works is that random weights are not updated
+during this process. After finishing the learning of channel importance, a
+simple binary search strategy is used to determine the channel number
+configurations of the pruned model given resource constraints (e.g., FLOPS).
+Since it is not needed to update the model weights during optimization, the
+pruned structure can be discovered at an extremely fast speed.
 
-
+This approach not only greatly reduces the pre-training burden of traditional
+pruning methods, but also achieves similar or even higher accuracy under the
+same computation budget.~\cite{Wang_2020}
 
 \subsection{Sparsity-accuracy trade-offs}\label{subsec:tradeoff}
 \lipsum[1]
