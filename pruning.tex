@@ -328,8 +328,63 @@ This approach not only greatly reduces the pre-training burden of traditional
 pruning methods, but also achieves similar or even higher accuracy under the
 same computation budget.~\cite{Wang_2020}
 
-\subsection{Sparsity-accuracy trade-offs}\label{subsec:tradeoff}
-\lipsum[1]
+\subsection{Pruning trade-offs}\label{subsec:tradeoff}
+When a neural network is pruned, its structure and architecture might change
+affecting various characteristic. Pruning affects mostly sparsity of the model
+and this has an effect on model size, memory used for inference, number of
+parameters, speed and latency, compute power and energy needed for
+interference.
+Whilst pruning has mostly a positive impact on the above metrics, this
+optimization might have a negative impact on accuracy of the network model. Of
+course, the drop in accuracy needs to be limited or removed completely and
+there are techniques for doing so.
+In the section though, I will focus on the trade-offs we need to consider
+when pruning a network model.
+
+\begin{figure}[ht]
+    \includegraphics[width=11cm]{images/pruning/tradeoff.png}
+    \centering
+    \caption{Trade-off between accuracy and optimization strength}\label{fig:tradeoff}
+\end{figure}
+
+As the model sparsity increases, a well-designed pruning technique can
+efficiently reduce the parameter redundancy while maintaining the original
+accuracies. However, after the over-parametrization has been exploited, pruning
+or any other model optimization technique will start to introduce accuracy
+degradations which are traded for higher optimization strength and better
+inference performance. Three typical scenarios are illustrated in \autoref{fig:tradeoff}
+
+\begin{itemize}
+    \item \textbf{Accuracy-driven}: in this region, the optimizations produce
+        minimal accuracy impact with no downside.
+    \item \textbf{Quick deployment}: the trade-off between accuracy and
+        performance is the key in this region.
+    \item \textbf{Performance-driven}: this region represents the deployment on
+        highly resource-constrained devices where we reach the limit of
+        optimizations.
+\end{itemize}
+
+Accuracy usually is measured with Top-1 and/or Top-5 terms. These are:
+\begin{itemize}
+    \item \textbf{Top-1}: the answer given by the model must be exactly the
+        expected one. In case of classification, it is the answer with highest
+        probability. It is the conventional accuracy.
+    \item \textbf{Top-5}: the expected answer is any of the first five answers
+        with highest probability.
+\end{itemize}
+
+When calculating accuracy, Top-1/5 are used to compare against other metrics.
+Depending where the model is needed for, we might need different levels of
+optimizations and they might target different kinds of metrics.
+Pruning is one of those techniques which affect any aspect of the neural
+network: model size, memory used, latency etc
+
+It can be more or less aggressively tuned depending what level of optimization
+the network needs to have.
+When pruning a neural network, due its over-parametrized and redundant nature,
+a usual target sparsity could be between 50\% and 80\%.
+These values though depend from the model used and the result of the
+evaluation, hence they can be more than 80\% as well.
 
 \subsection{Practical examples with Pruning}
 \lipsum[1]
