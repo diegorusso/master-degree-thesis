@@ -386,8 +386,70 @@ a usual target sparsity could be between 50\% and 80\%.
 These values though depend from the model used and the result of the
 evaluation, hence they can be more than 80\% as well.
 
-\subsection{Practical examples with Pruning}
-\lipsum[1]
+\subsection{An overview of pruning in TensorFlow Model Optimization}
+In this section I will explain briefly how pruning is implemented in TensorFlow
+Model Optimization (TFMOT).
+
+TFMOT supports already pruning as technique to optimize neural network and
+\textbf{sparsity} is the module that deals with pruning.
+
+\begin{lstlisting}[language=Python, caption=Pruning API in TFMOT]
+import tensorflow_model_optimization as tfmot
+
+model = build_your_model()
+
+pruning_schedule = tfmot.sparsity.keras.PolynomialDecay(
+    initial_sparsity=0.0,
+    final_sparsity=0.5,
+    begin_step=2000,
+    end_step=4000)
+
+model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(
+    model,
+    pruning_schedule=pruning_schedule)
+
+{\ldots}
+
+model_for_pruning.fit({\dots})
+\end{lstlisting}
+
+There are few things to explain in the above lines of code. At the time of
+writing TFMOT supports two \textbf{pruning schedules}:
+
+\begin{itemize}
+    \item \texttt{ConstantSparsity}: this schedule applies constant sparsity
+        (\%) throughout training.
+    \item \texttt{PolynomialDecay}: this schedule applies pruning based on a
+        polynomial function, so it is non-constant.
+\end{itemize}
+
+Both pruning schedules are taking the following parameters:
+
+\begin{itemize}
+    \item \texttt{final/target\_sparsity}: this is the sparsity the network
+        should have once the training has ended.
+    \item \texttt{begin\_step}: step at which to begin pruning.
+    \item \texttt{end\_step}: step at which to end pruning (-1 means to prune
+        till the end of training).
+    \item \texttt{frequency}: only apply pruning every \texttt{frequency} step.
+\end{itemize}
+
+The \texttt{PolynomialDecay} accepts a couple of extra parameters:
+
+\begin{itemize}
+    \item \texttt{initial\_sparsity}: sparsity (\%) at which pruning begins.
+    \item \texttt{power}: exponent to be used in the sparsity function.
+\end{itemize}
+
+Which schedule to use? It seems there has not been much research on what
+pruning schedule to use depending on the condition.
+It is known that PolynomialDecay applies the pruning gradually: if the pruning
+is applied later in the training, the network has time to converge leading to
+more robust and stable results.
+The same can be applied with ConstantSparsity since the pruning starts, the
+sparsity will be applied straight away and this might cause some instability in
+the results.
+The best way to choose the schedule is through experimentation.
 
 \section{Per-Layer Pruning Configuration With Heuristic}\label{sec:heuristic}
 \lipsum[1]
