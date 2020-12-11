@@ -8,7 +8,7 @@ configuration with heuristic.
 Despite being technical, this chapter is still fairly theoretical and I defer
 any code and implementation to \autoref{ch:implementation}.
 
-\section{What's Pruning?}
+\section{What's pruning?}
 Neural network pruning is the task of reducing the size of a network by
 removing parameters. This compression affects the size of the model, the
 latency, the amount of memory and the compute power needed to run the
@@ -386,7 +386,7 @@ a usual target sparsity could be between 50\% and 80\%.
 These values though depend from the model used and the result of the
 evaluation, hence they can be more than 80\% as well.
 
-\subsection{An overview of pruning in TensorFlow Model Optimization}
+\section{An overview of pruning in TensorFlow Model Optimization}
 In this section I will explain briefly how pruning is implemented in TensorFlow
 Model Optimization (TFMOT).
 
@@ -451,11 +451,44 @@ sparsity will be applied straight away and this might cause some instability in
 the results.
 The best way to choose the schedule is through experimentation.
 
-\section{Per-Layer Pruning Configuration With Heuristic}\label{sec:heuristic}
-\lipsum[1]
+\section{Per-layer pruning with heuristic}\label{sec:heuristic}
+In the previous sections I explained more in details various aspects about
+pruning and how TFMOT implements it. This was needed to fully comprehend the
+content of this section where I talk about the core of this thesis.
+This section then gives the basis to fully understand the next chapter
+(\autoref{ch:implementation}) where I will implement show the implementation
+of this technique in TensorFlow Model Optimization.
 
-\subsection{What's a heuristic?}
-\lipsum[1]
+\subsection{Distribution of sparsity}
+TFMOT supports two pruning schedules: constant sparsity and polynomial decay.
+The schedule specifies when and what sparsity to apply to the network and this
+is applied equally across all layer of the network model.
+
+This hints to the first distribution type a network model can have,
+\textbf{uniform distribution}. With this distribution basically the same
+pruning level is applied to all prunable layers, regardless of their operation
+types, sizes, and shapes.
+The uniform distribution is the only distribution implemented in TFMOT at the
+time of writing.
+
+The distribution can be based on \textbf{reinforcement learning} or
+\textbf{optimization based}. The tuning of the sparsity distribution and other
+hyper-parameters can be viewed as a search problem whose solutions can be
+learned\cite{He_2018} by training a reinforcement learning agent or optimized
+by techniques such as simulated annealing. This approach penalizes accuracy
+loss and encourages model compression with single or multiple objectives.
+Real or estimated hardware performance statistics can be used by this approach
+to guide the tuning and produce target-specific optimized models.
+
+Another option is to base the sparsity distribution on a \textbf{heuristic}.
+The heuristic is any approach to problem solving or self-discovery that employs
+a practical method that is not guaranteed to be optimal, perfect, or rational,
+but is nevertheless sufficient for reaching an immediate, short-term goal or
+approximation.
+Where finding an optimal solution is impossible or impractical, heuristic
+methods can be used to speed up the process of finding a satisfactory solution.
+Heuristics can be mental shortcuts that ease the cognitive load of making a
+decision.\cite{heuristic}
 
 \subsection{Heuristic details}
 Explain in details the technique and the reasons behind

@@ -233,7 +233,7 @@ Training time tools piggyback on the model's loss function over the training
 data such that the model can ``adapt'' to the changes brought by the
 optimisation technique.~\cite{tfmot:intro}
 
-\subsection{Weight Clustering}
+\subsection{Weight clustering}
 Clustering, or weight sharing, reduces the number of unique weight values in a
 model, leading to benefits for deployment. It first groups the weights of each
 layer into N clusters, then shares the cluster's centroid value for all the
@@ -435,7 +435,7 @@ models have comparable accuracy with their float versions (MobileNet v1 loses
     \caption{Post-quantization accuracy}\label{fig:post_quantization_accuracy}
 \end{figure}
 
-\subsection{Weight Pruning}
+\subsection{Weight pruning}
 Magnitude-based weight pruning gradually zeroes out model weights during the
 training process to achieve model sparsity. Sparse models are easier to
 compress, and we can skip the zeroes during inference for latency improvements.
