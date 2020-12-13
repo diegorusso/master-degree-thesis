@@ -491,8 +491,43 @@ Heuristics can be mental shortcuts that ease the cognitive load of making a
 decision.\cite{heuristic}
 
 \subsection{Heuristic details}
-Explain in details the technique and the reasons behind
-\lipsum[1]
+After seeing examples of sparsity distribution and what a heuristic is, in this
+subsection I explain how the heuristic affects the sparsity distribution.
+
+The \textbf{target pruning ratio} (\texttt{pr}) can be distributed based on a
+simple heuristic: the more parameters a layer has, the more prunable it becomes
+due to the redundancy.
+
+The function uses a heuristic to calculate the optimum sparsity per each
+individual layer while still maintaining the requested target pruning ratio.
+
+The heuristic is based on the simple intuition that a layer with more weights
+has more redundancy and, therefore, can have a higher pruning ratio without
+affecting performance, while a lower number of prunable weights would be more
+sensitive to pruning and therefore be assigned a smaller target pruning ratio.
+
+More specifically, the per-layer target pruning ratio can be defined as
+
+\begin{equation}
+    pr_i = \alpha \cdot \log|layer_i|
+\end{equation}
+
+where $|layer_i|$ denotes the \textbf{number of parameters in $i^{th}$ layer},
+and the \textbf{weighted coefficient $\alpha$} as
+
+\begin{equation}
+    \alpha = \frac{pr \cdot \sum|layer_i|}{\sum(|layer_i| \cdot \log|layer_i|)}
+\end{equation}
+
+This heuristic has been verified with many networks and shown its effectiveness
+at distributing the overall target sparsity. I'll be showing the effect of the
+heuristic in \autoref{ch:results}.
 
 \subsection{Custom heuristic formula}
+\lipsum[1]
+
+\subsection{What should we be pruning?}
+\lipsum[1]
+
+\subsection{Heuristic with PolynomialDecay scheduler}
 \lipsum[1]
