@@ -523,11 +523,44 @@ This heuristic has been verified with many networks and shown its effectiveness
 at distributing the overall target sparsity. I'll be showing the effect of the
 heuristic in \autoref{ch:results}.
 
-\subsection{Custom heuristic formula}
-\lipsum[1]
+\subsubsection{Custom heuristic formula}
+The above heuristic formula is a fixed one and the user doesn't have any
+control of it. A useful addition would be to allow the user to specify his/her
+own heuristic formula to define the sparsity distribution across layers of the
+entire model.
 
-\subsection{What should we be pruning?}
-\lipsum[1]
+In \autoref{ch:implementation} I will show how the user can use a custom
+formula to prune the entire model. For this to work, the object that implements
+the formula needs to have access to the whole model.
+
+If the user uses the default formula, it's already proven the final sparsity is
+respected. This might not be the case when using custom formulas.
+A sanity check mechanism is needed in order to ensure the custom formula
+respects the final sparsity. If this is not the case, the user should be warned
+that the custom formula might return unexpected results as it might produce a
+sparsity different from the final one specified.
+
+\subsection{What should it be pruned?}
+Currently in TensorFlow it is possible to prune the following objects:
+\begin{itemize}
+    \item \textbf{Model}: this could be either sequential or functional.
+    \item \textbf{List of layers}: it is implemented but not so supported or
+        documented.
+    \item \textbf{Layer}: this is the basic object that can be pruned with
+        TensorFlow pruning API\@.
+\end{itemize}
+
+In order to prune using the heuristic, the algorithm need knowledge of the
+whole model because it needs to apply different sparsity at layer level whilst
+maintaining a specific target/final sparsity set by the user.
+
+For this reason pruning with heuristic is \textbf{supported only on the whole
+model} hence the single layer is not supported at all and the framework should
+raise an error.
+
+Pruning with heuristic to a list of layer doesn't have much sense and it
+doesn't seem to be a use case for that hence it is not supported and the
+framework should raise an error.
 
 \subsection{Heuristic with PolynomialDecay scheduler}
 \lipsum[1]
