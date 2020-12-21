@@ -393,7 +393,8 @@ Model Optimization (TFMOT).
 TFMOT supports already pruning as technique to optimize neural network and
 \textbf{sparsity} is the module that deals with pruning.
 
-\begin{lstlisting}[language=Python, caption=Pruning API in TFMOT]
+\begin{lstlisting}[language=Python, label={lst:tfmotpruningapi},
+    caption=Pruning API in TFMOT]
 import tensorflow_model_optimization as tfmot
 
 model = build_your_model()
@@ -413,8 +414,8 @@ model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(
 model_for_pruning.fit({\dots})
 \end{lstlisting}
 
-There are few things to explain in the above lines of code. At the time of
-writing TFMOT supports two \textbf{pruning schedules}:
+There are few things to explain in \autoref{lst:tfmotpruningapi}. At the time
+of writing TFMOT supports two \textbf{pruning schedules}:
 
 \begin{itemize}
     \item \texttt{ConstantSparsity}: this schedule applies constant sparsity
@@ -563,4 +564,44 @@ doesn't seem to be a use case for that hence it is not supported and the
 framework should raise an error.
 
 \subsection{Heuristic with PolynomialDecay scheduler}
-\lipsum[1]
+The PolynomialDecay scheduler requires some special consideration when used
+with heuristic.
+
+\begin{lstlisting}[language=Python, label={lst:polynomialdecay},
+    caption=PolynomialDecay Scheduler in TFMOT]
+{\ldots}
+
+pruning_schedule = tfmot.sparsity.keras.PolynomialDecay(
+    initial_sparsity=0.3,
+    final_sparsity=0.8,
+    begin_step=2000,
+    end_step=4000)
+
+{\ldots}
+\end{lstlisting}
+
+As it is shown in \autoref{lst:polynomialdecay}, the scheduler has both initial
+and final sparsity.
+There is an issue when the \textbf{initial sparsity is bigger than the final
+sparsity} calculated by the heuristic for a specific layer.
+For instance, if the heuristic calculates the sparsity of a layer to be 0.2,
+this will clash with the \texttt{initial\_sparsity=0.3}.
+In order to address this issue, a couple of approaches can be taken:
+
+\begin{enumerate}
+    \item The initial sparsity is ignored and always set to 0. In this way, the
+        final sparsity of the layer it will be always bigger than the initial
+        sparsity. A warning needs to be raise in case the user specifies the
+        \texttt{initial\_sparsity} saying that it will be ignored and set to 0.
+    \item The initial sparsity is considered in proportion of the final
+        sparsity. In \autoref{lst:polynomialdecay} the
+        \texttt{initial\_sparsity} is set to 0.3. If the heuristic calculates
+        the final sparsity of a layer to be 0.2, then the initial sparsity for
+        that layer will be set to $0.3 * 0.2 = 0.06$
+\end{enumerate}
+
+The approach used in \autoref{ch:implementation} is the second one: if the
+initial sparsity is bigger than the sparsity the heuristic have calculated, the
+amount of the initial sparsity will be relative to the layer's sparsity.
+This is done because the polynomial decay effect needs to be replicated in the
+small interval between the initial sparsity and the final one.
