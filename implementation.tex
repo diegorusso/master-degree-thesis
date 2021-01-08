@@ -1,14 +1,173 @@
 \chapter{Implementation}\label{ch:implementation}
-\lipsum[1]
+This chapter shows the code that implements the pruning with heuristic
+explained in \autoref{sec:heuristic}.
 
 \section{Codebase}
-\lipsum[1]
+The whole implementation is contained in the TensorFlow Model Optimization
+(TFMOT)
+repository\footnote{\url{https://github.com/tensorflow/model-optimization}}
+This because the pruning with heuristic is a training-time optimization and it
+is an improvements of the current pruning API\@.
+
+At the time of writing the code is not public yet: the upstream process usually
+lasts for months and it involves various discussion with Google.
+
+In the next subsections I show briefly the current API for pruning, the API for
+pruning with heuristic and then some explanation of the code behind the
+implementation.
 
 \subsection{Pruning API in TFMOT}
-https://blog.tensorflow.org/2019/05/tf-model-optimization-toolkit-pruning-API.html
-\lipsum[1]
+Pruning API in TFMOT are very easy to use. Below an example that shows how to
+prune a model. I skip the details of building the model and focus more on the
+pruning. In \autoref{sec:workingexamples} I'll show details on how to create a
+model.
 
-\section{Fully working examples}
+\begin{lstlisting}[language=Python, label={lst:tfmotpruningexample},
+    caption=Pruning example in TFMOT]
+import tempfile
+import os
+
+import tensorflow as tf
+import numpy as np
+
+from tensorflow import keras
+import tensorflow_model_optimization as tfmot
+
+# Load MNIST dataset
+mnist = keras.datasets.mnist
+(train_images, train_labels), (test_images, test_labels) = mnist.load_data()
+
+# Normalize the input image so that each pixel value is between 0 to 1.
+train_images = train_images / 255.0
+test_images = test_images / 255.0
+
+# Build and train the model
+model = build_and_train_your_model()
+
+prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
+
+# Compute end step to finish pruning after 2 epochs
+batch_size = 128
+epochs = 2
+
+# 10% of training set will be used for validation set
+validation_split = 0.1
+
+num_images = train_images.shape[0] * (1 - validation_split)
+end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
+
+# Define pruning parameters
+pruning_params = {\{}
+  "pruning_schedule": tfmot.sparsity.keras.PolynomialDecay(
+    initial_sparsity=0.50,
+    final_sparsity=0.80,
+    begin_step=0,
+    end_step=end_step)
+{\}}
+
+model_for_pruning = prune_low_magnitude(model, **pruning_params)
+
+# "prune_low_magnitude" requires a recompile
+model_for_pruning.compile(
+  optimizer='adam',
+  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+  metrics=['accuracy']
+)
+
+logdir = tempfile.mkdtemp()
+
+callbacks = [
+  tfmot.sparsity.keras.UpdatePruningStep(),
+  tfmot.sparsity.keras.PruningSummaries(log_dir=logdir),
+]
+
+# Fine tune with pruning for two epochs
+model_for_pruning.fit(
+  train_images,
+  train_labels,
+  batch_size=batch_size,
+  epochs=epochs,
+  validation_split=validation_split,
+  callbacks=callbacks
+)
+
+# Evaluate the accuracy of the pruned model
+_, model_for_pruning_accuracy = model_for_pruning.evaluate(
+  test_images,
+  test_labels,
+  verbose=0
+)
+print('Pruned test accuracy:', model_for_pruning_accuracy)
+\end{lstlisting}
+
+The \autoref{lst:tfmotpruningexample} can be split in the following three
+sections:
+
+\begin{enumerate}
+    \item Define and train the model (lines 1--31)
+    \item Setup the model pruning (lines 33--49)
+    \item Prune, fine tuning weights and evaluate the model (51--74)
+\end{enumerate}
+
+Below more details of the three sections.
+
+\subsubsection{Define and train the model}
+Apart the usual imports at the top of the file, the MNIST
+(\url{http://yann.lecun.com/exdb/mnist/}) dataset is loaded generating the
+split between training and test images (line 12).
+10\% of the dataset is kept for validation purposes (line 28)
+
+\texttt{build\_and\_train\_your\_model} is a custom function to define and
+train the model.
+
+\texttt{batch\_size = 128} defines the number of samples that will be
+propagated through the network. In this case 128 samples at the time are taken
+and propagated through the network.
+The main advantage is the memory usage: the memory footprint is the equivalent
+of loading 128 samples of the training data at any time.
+
+\texttt{epochs = 2} means that the training will do a full pass twice over the
+full training set. Please note that in this case the epochs defines how many
+passes the pruning will do.
+
+Finally the number if images are the full set minus 10\% reserved to
+validation. The shape of \texttt{train\_images} is the following
+
+\begin{lstlisting}[language=Python, caption=Shape of train\_images]
+>>> train_images.shape
+(60000, 28, 28)
+\end{lstlisting}
+
+The first element is the number if images present in the dataset.
+
+With all data above, the \texttt{end\_step} is then calculated.
+
+\subsubsection{Setup the model pruning}
+In this block, the model is prepared for the pruning activity.
+This is done by defining the pruning parameters. In this case only the pruning
+schedule has been defined.
+
+\texttt{prune\_low\_magnitude} accepts as parameters the trained model and the
+dictionary with the pruning settings: the function has the goal to augment the
+model layers with pruning information.
+The resulting model then is compiled again before calling the fit method.
+
+\subsubsection{Prune, fine tuning weights and evaluate the model}
+After the compilation of the model, it is finally time to prune the model.
+
+The \texttt{UpdatePruningStep} callback is the one that updates pruning
+wrappers with the optimizer step. Not adding this callback to the \texttt{fit}
+method will result in throwing an error.
+
+Finally the \texttt{fit} method fine-tune the weights thanks to the callback
+UpdatePruningStep.
+
+After the pruning, the model is evaluated and return the accuracy of the new
+model.
+
+\subsection{Pruning API with Heuristic}
+
+\section{Fully working examples}\label{sec:workingexamples}
 \lipsum[1]
 
 \subsection{MNIST}
