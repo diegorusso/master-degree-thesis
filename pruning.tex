@@ -409,9 +409,9 @@ model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(
     model,
     pruning_schedule=pruning_schedule)
 
-{\ldots}
+|*\ldots*|
 
-model_for_pruning.fit({\dots})
+model_for_pruning.fit(|*\ldots*|)
 \end{lstlisting}
 
 There are few things to explain in \autoref{lst:tfmotpruningapi}. At the time
@@ -569,7 +569,7 @@ with heuristic.
 
 \begin{lstlisting}[language=Python, label={lst:polynomialdecay},
     caption=PolynomialDecay Scheduler in TFMOT]
-{\ldots}
+|*\ldots*|
 
 pruning_schedule = tfmot.sparsity.keras.PolynomialDecay(
     initial_sparsity=0.3,
@@ -577,7 +577,7 @@ pruning_schedule = tfmot.sparsity.keras.PolynomialDecay(
     begin_step=2000,
     end_step=4000)
 
-{\ldots}
+|*\ldots*|
 \end{lstlisting}
 
 As it is shown in \autoref{lst:polynomialdecay}, the scheduler has both initial

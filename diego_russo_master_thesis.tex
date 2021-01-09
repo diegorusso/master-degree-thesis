@@ -1,5 +1,6 @@
 \documentclass[a4paper, 12pt]{report}
 \usepackage{amssymb}  % Symbol collection
+\usepackage[toc,page]{appendix}
 \usepackage[english]{babel}  % Multilingual support
 \usepackage{cite}  % Improved citation handling
 \usepackage{enumitem}  % Control layout of itemize, enumerate, description
@@ -42,7 +43,7 @@
     showstringspaces=false,
     showtabs=false,
     tabsize=2,
-    escapeinside={\{}{\}},
+    escapeinside={|*}{*|},
     upquote=true
 }
 
@@ -80,6 +81,7 @@
     \include{implementation}
     \include{results}
     \include{conclusions}
+    \include{appendix}
 
     \bibliographystyle{plain}
     \bibliography{bibliography}

@@ -57,13 +57,13 @@ num_images = train_images.shape[0] * (1 - validation_split)
 end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
 
 # Define pruning parameters
-pruning_params = {\{}
+pruning_params = {
   "pruning_schedule": tfmot.sparsity.keras.PolynomialDecay(
-    initial_sparsity=0.50,
-    final_sparsity=0.80,
+    initial_sparsity=0.4,
+    final_sparsity=0.8,
     begin_step=0,
     end_step=end_step)
-{\}}
+}
 
 model_for_pruning = prune_low_magnitude(model, **pruning_params)
 
@@ -106,15 +106,15 @@ sections:
 \begin{enumerate}
     \item Define and train the model (lines 1--31)
     \item Setup the model pruning (lines 33--49)
-    \item Prune, fine tuning weights and evaluate the model (51--74)
+    \item Prune, fine tuning weights and evaluate the model (lines 51--74)
 \end{enumerate}
 
 Below more details of the three sections.
 
 \subsubsection{Define and train the model}
-Apart the usual imports at the top of the file, the MNIST
-(\url{http://yann.lecun.com/exdb/mnist/}) dataset is loaded generating the
-split between training and test images (line 12).
+Apart the usual imports at the top of the file, the
+MNIST\footnote{\url{http://yann.lecun.com/exdb/mnist/}} dataset is loaded
+generating the split between training and test images (line 12).
 10\% of the dataset is kept for validation purposes (line 28)
 
 \texttt{build\_and\_train\_your\_model} is a custom function to define and
@@ -128,10 +128,10 @@ of loading 128 samples of the training data at any time.
 
 \texttt{epochs = 2} means that the training will do a full pass twice over the
 full training set. Please note that in this case the epochs defines how many
-passes the pruning will do.
+passes the pruning training will do.
 
 Finally the number if images are the full set minus 10\% reserved to
-validation. The shape of \texttt{train\_images} is the following
+validation (line 30). The shape of \texttt{train\_images} is the following
 
 \begin{lstlisting}[language=Python, caption=Shape of train\_images]
 >>> train_images.shape
@@ -145,12 +145,13 @@ With all data above, the \texttt{end\_step} is then calculated.
 \subsubsection{Setup the model pruning}
 In this block, the model is prepared for the pruning activity.
 This is done by defining the pruning parameters. In this case only the pruning
-schedule has been defined.
+schedule has been defined (lines 34--40).
 
 \texttt{prune\_low\_magnitude} accepts as parameters the trained model and the
 dictionary with the pruning settings: the function has the goal to augment the
-model layers with pruning information.
-The resulting model then is compiled again before calling the fit method.
+model layers with pruning information taken by the pruning parameters.
+The resulting model then is compiled again (lines 45--49) before calling the
+\texttt{fit} method.
 
 \subsubsection{Prune, fine tuning weights and evaluate the model}
 After the compilation of the model, it is finally time to prune the model.
@@ -159,13 +160,96 @@ The \texttt{UpdatePruningStep} callback is the one that updates pruning
 wrappers with the optimizer step. Not adding this callback to the \texttt{fit}
 method will result in throwing an error.
 
-Finally the \texttt{fit} method fine-tune the weights thanks to the callback
-UpdatePruningStep.
-
+Finally the \texttt{fit} method fine-tunes the weights thanks to the callbacks
+definition above.
 After the pruning, the model is evaluated and return the accuracy of the new
-model.
+model (lines 69--74)
 
 \subsection{Pruning API with Heuristic}
+If the heuristic based pruning needs to be applied, few lines of the above
+example need to be changed.
+
+\begin{lstlisting}[language=Python, caption=Pruning with Heuristic]
+|*\ldots*|
+
+from tensorflow_model_optimization.python.core.api.experimental import (
+    sparsity_distribution,
+)
+
+|*\ldots*|
+
+pruning_params = {
+  "pruning_schedule":
+    tfmot.sparsity.keras.PolynomialDecay(
+      initial_sparsity=0.4,
+      final_sparsity=0.8,
+      begin_step=0,
+      end_step=end_step
+    ),
+  "sparsity_distribution":
+    sparsity_distribution.HeuristicSparsityDistribution(),
+}
+
+|*\ldots*|
+
+model_for_pruning = \
+  sparsity_distribution.prune_low_magnitude_custom_distribution(
+    sequential_model, **pruning_params
+  )
+
+|*\ldots*|
+\end{lstlisting}
+
+The main changes compared to classical API are:
+
+\begin{itemize}
+    \item Import the new experimental module (lines 3--5)
+    \item Define the heuristic based sparsity distribution in the pruning
+        parameters (lines 17--18)
+    \item \texttt{prune\_low\_magnitude\_custom\_distribution} is called in
+        favour of the classic method (\texttt{prune\_low\_magnitude})
+\end{itemize}
+
+There are few key points to highlight in the implementation:
+
+\begin{itemize}
+    \item \texttt{HeuristicSparsityDistribution} is a subclass of \linebreak
+        \texttt{SparsityDistribution}: the subclass needs to implement
+        \linebreak
+        \texttt{sparsity\_function\string(self, model, target\_pruning\_ratio\string)}
+        method in order to define the custom distribution to apply to model's
+        layers.
+
+        Actual layer's information are stored in a data structure inside the
+        instance of the class and it will be exported using
+        \texttt{get\_sparsity\_map} method.
+
+        The class has also a mechanism that checks if the projected sparsity
+        distribution honours the target pruning ration set by the user: in case
+        it doesn't, it prints a warning message.
+    \item \texttt{prune\_low\_magnitude\_custom\_distribution} is a wrapper
+        around the classic \texttt{prune\_low\_magnitude} function. It has a
+        similar signature and takes an additional parameter:
+        \texttt{sparsity\_distribution} which should be an instance of
+        \texttt{SparsityDistribution}.
+
+        The \texttt{sparsity\_distribution} create the \texttt{sparsity\_map}
+        which will be used to wrap model's layer with sparsity distribution
+        information.
+
+        The function will revert back to the classic
+        \texttt{prune\_low\_magnitude} in the following cases:
+        \texttt{sparsity\_distribution} is not an instance of \linebreak
+        \texttt{SparsityDistribution} or it is not defined and the object to
+        prune is not a sequential of functional model. In this cases a warning
+        will be printed saying the heuristic cannot be applied.
+\end{itemize}
+
+For a deeper understanding of the implementation,
+\autoref{appendix:distribution.py} shows the code of
+\texttt{HeuristicSparsityDistribution} and \texttt{SparsityDistribution},
+whilst \autoref{appendix:prune.py} shows
+\texttt{prune\_low\_magnitude\_custom\_distribution}
 
 \section{Fully working examples}\label{sec:workingexamples}
 \lipsum[1]
