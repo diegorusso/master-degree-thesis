@@ -19,7 +19,7 @@ implementation.
 \subsection{Pruning API in TFMOT}
 Pruning API in TFMOT are very easy to use. Below an example that shows how to
 prune a model. I skip the details of building the model and focus more on the
-pruning. In \autoref{sec:workingexamples} I'll show details on how to create a
+pruning. In \autoref{sec:mnistpipeline} I'll show details on how to create a
 model.
 
 \begin{lstlisting}[language=Python, label={lst:tfmotpruningexample},
@@ -251,11 +251,196 @@ For a deeper understanding of the implementation,
 whilst \autoref{appendix:prune.py} shows
 \texttt{prune\_low\_magnitude\_custom\_distribution}
 
-\section{Fully working examples}\label{sec:workingexamples}
-\lipsum[1]
+\section{MNIST pipeline with heuristic pruning}\label{sec:mnistpipeline}
+The implementation code of the MNIST pipeline with heuristic pruning can be
+found in \autoref{appendix:mnist}.
 
-\subsection{MNIST}
-\lipsum[1]
+At the very high level the pipeline does the following:
+\begin{enumerate}
+    \item Build, train and evaluate the model
+    \item Save the model in a file
+    \item Prune and evaluate the new model
+    \item Save the pruned model in a file
+    \item Show the models' sizes to show the effect of pruning
+\end{enumerate}
 
-\subsection{DS-CNN-L}
-\lipsum[1]
+The \autoref{lst:mnistpipelineoutput} shows the output of the execution of the
+pipeline script. Just after the output I will be highlighting the key points to
+observe.
+
+\begin{lstlisting}[label={lst:mnistpipelineoutput},
+    caption=MNIST pipeline output execution]
+|*\textdollar*| python full_heuristic_pruning_mnist.py
+train_images shape: (60000, 28, 28, 1)
+60000 train samples
+10000 test samples
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d (Conv2D)              (None, 28, 28, 32)        832
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 14, 14, 32)        0
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 14, 14, 64)        51264
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 7, 7, 64)          0
+_________________________________________________________________
+flatten (Flatten)            (None, 3136)              0
+_________________________________________________________________
+dense (Dense)                (None, 1024)              3212288
+_________________________________________________________________
+dropout (Dropout)            (None, 1024)              0
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                10250
+=================================================================
+Total params: 3,274,634
+Trainable params: 3,274,634
+Non-trainable params: 0
+_________________________________________________________________
+Epoch 1/4
+1688/1688 [==============================] - 8s 5ms/step - loss: 0.1155 - accuracy: 0.9641 - val_loss: 0.0413 - val_accuracy: 0.9873
+Epoch 2/4
+1688/1688 [==============================] - 8s 5ms/step - loss: 0.0398 - accuracy: 0.9875 - val_loss: 0.0354 - val_accuracy: 0.9898
+Epoch 3/4
+1688/1688 [==============================] - 8s 5ms/step - loss: 0.0285 - accuracy: 0.9910 - val_loss: 0.0386 - val_accuracy: 0.9888
+Epoch 4/4
+1688/1688 [==============================] - 8s 5ms/step - loss: 0.0215 - accuracy: 0.9933 - val_loss: 0.0363 - val_accuracy: 0.9912
+Test loss: 0.026622682809829712
+Test accuracy: 0.991599977016449
+Saved model to: /tmp/mnist.h5
+Layer "conv2d": 800 weights of which about 287 will be zeroed. Sparsity will be 0.3589671368157816.
+Layer "conv2d_1": 51200 weights of which about 29814 will be zeroed. Sparsity will be 0.5823013278812128.
+Layer "dense": 3211264 weights of which about 2583624 will be zeroed. Sparsity will be 0.8045506230249138.
+Layer "dense_1": 10240 weights of which about 5078 will be zeroed. Sparsity will be 0.49587367241725167.
+Total weights for the model: 3273504
+Projected zero weights for the model: 2618803
+Projected sparsity: 0.8
+
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+prune_low_magnitude_conv2d ( (None, 28, 28, 32)        1634
+_________________________________________________________________
+prune_low_magnitude_max_pool (None, 14, 14, 32)        1
+_________________________________________________________________
+prune_low_magnitude_conv2d_1 (None, 14, 14, 64)        102466
+_________________________________________________________________
+prune_low_magnitude_max_pool (None, 7, 7, 64)          1
+_________________________________________________________________
+prune_low_magnitude_flatten  (None, 3136)              1
+_________________________________________________________________
+prune_low_magnitude_dense (P (None, 1024)              6423554
+_________________________________________________________________
+prune_low_magnitude_dropout  (None, 1024)              1
+_________________________________________________________________
+prune_low_magnitude_dense_1  (None, 10)                20492
+=================================================================
+Total params: 6,548,150
+Trainable params: 3,274,634
+Non-trainable params: 3,273,516
+_________________________________________________________________
+Epoch 1/2
+211/211 [==============================] - 3s 15ms/step - loss: 0.0074 - accuracy: 0.9977 - val_loss: 0.0285 - val_accuracy: 0.9932
+Epoch 2/2
+211/211 [==============================] - 3s 15ms/step - loss: 0.0033 - accuracy: 0.9991 - val_loss: 0.0313 - val_accuracy: 0.9923
+Per layer sparsity:
+conv2d :  800  weights,  0.35875  sparsity
+conv2d_1 :  51200  weights,  0.5823046875  sparsity
+dense :  3211264  weights,  0.804550482302296  sparsity
+dense_1 :  10240  weights,  0.49589843749999996  sparsity
+Sparse weights: 2618803.0
+All weights: 3273504
+Overall model sparsity :  0.7999999389033892
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+conv2d (Conv2D)              (None, 28, 28, 32)        832
+_________________________________________________________________
+max_pooling2d (MaxPooling2D) (None, 14, 14, 32)        0
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 14, 14, 64)        51264
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 7, 7, 64)          0
+_________________________________________________________________
+flatten (Flatten)            (None, 3136)              0
+_________________________________________________________________
+dense (Dense)                (None, 1024)              3212288
+_________________________________________________________________
+dropout (Dropout)            (None, 1024)              0
+_________________________________________________________________
+dense_1 (Dense)              (None, 10)                10250
+=================================================================
+Total params: 3,274,634
+Trainable params: 3,274,634
+Non-trainable params: 0
+_________________________________________________________________
+Test loss: 0.019717451184988022
+Test accuracy: 0.9940000176429749
+Saved model to: /tmp/pruned_mnist.h5
+Size of /tmp/mnist.h5 is 13121.672 KB
+Size of zipped /tmp/mnist.h5 is 12177.406 KB
+Size of /tmp/pruned_mnist.h5 is 13121.672 KB
+Size of zipped /tmp/pruned_mnist.h5 is 3880.847 KB
+\end{lstlisting}
+
+The output can be split in three main blocks. These are:
+
+\subsubsection{Lines 1--39}
+The table with the list of layers is produced by the
+\texttt{summary\string(\string)} method. The main thing to notice is the amount
+of trainable and non trainable parameters: the latter are zero.
+
+After the table there is the output produced by the
+\texttt{fit\string(\string)} method follow by the loss and accuracy of the
+model. The accuracy is \textbf{0.9915999} which is pretty good.
+
+\subsubsection{Lines 40--109}
+The output in this block belongs to pruning. For every prunable layer, the
+projected sparsity is printed along with the number of weights that will be
+zeroed. The total projected sparsity is the reported. These figures are
+calculated by the \texttt{HeuristicSparsityDistribution} instance. At this
+point the model is not pruned yet.
+
+The summary table is printed again and the thing to notice is that
+\textbf{Non-trainable} parameters are about the same amount of the trainable
+ones: this is the effect of the layer augmentation by the \linebreak
+\texttt{prune\_low\_magnitude\_custom\_distribution} function.
+Every trainable parameter has a linked non-trainable parameter which represents
+the sparsity mask: before the actual pruning all values of the non-trainable
+parameters are set to 1.
+
+After the pruning which runs for 2 epochs, the \textbf{actual sparsity} of the
+model is calculated: the sparsity matches the projected sparsity printed in the
+previous block. After the pruning, the model doesn't need to carry the extra
+information hence it is stripped: in fact the table now shows the ``right''
+amount of parameters. The stripping of these parameters if critical if the
+model needs to be compressed.
+
+The accuracy of the pruned model is \textbf{0.994} which is slightly better
+than the original model.
+
+\subsubsection{Lines 110--114}
+Finally the last block of output shows information about sizes of the models
+saved to disk. There are four models saved:
+\begin{itemize}
+    \item \textbf{mnist.h5} is 13121.672 KB
+    \item \textbf{zipped mnist.h5} is 12177.406 KB
+    \item \textbf{pruned\_mnist.h5} is 13121.672 KB
+    \item \textbf{zipped pruned\_mnist.h5} is \textbf{3880.847 KB}
+\end{itemize}
+The non-zipped models have the same size: this is normal because the pruned
+model, although it has 80\% of weights to zero, it stills needs variable
+allocation to host these zeroed weights.
+
+In the zipped models instead there is a big difference: the non-pruned models
+is about \textbf{12MB} whilst the pruned one is \textbf{3.8MB}: this because
+the pruned model has sparse weights and the one with zero can be easily
+compressed reducing the size.
+
+Considering the accuracy as well, it is incredible to see how the pruning
+didn't impact it at all: a model with 80\% sparsity results with a
+\textbf{slightly better accuracy} and about \textbf{30\% the size of the
+original model.}
