@@ -2,6 +2,7 @@
 \usepackage{amssymb}  % Symbol collection
 \usepackage[toc,page]{appendix}
 \usepackage[english]{babel}  % Multilingual support
+\usepackage{bm}
 \usepackage{cite}  % Improved citation handling
 \usepackage{enumitem}  % Control layout of itemize, enumerate, description
 \usepackage{ellipsis}
@@ -10,6 +11,7 @@
 \usepackage{hyperref}  % Extensive support for hypertext
 \usepackage{indentfirst}  % Indent first paragraph after section header
 \usepackage[utf8x]{inputenc}  % Accept different input encodings
+\usepackage{interval}
 \usepackage{lipsum}
 \usepackage{listings}  % Typeset source code listings
 \usepackage{setspace}  % Set space between lines
@@ -20,6 +22,10 @@
 \usepackage{ucs}  % Extended UTF-8 input encoding support
 \usepackage{url}  % Verbatim with URL-sensitive line breaks
 \usepackage{xcolor}
+
+\intervalconfig{
+  soft open fences % Uses ( and ) for open intervals, rather than ] and [
+}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
