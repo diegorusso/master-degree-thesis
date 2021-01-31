@@ -182,10 +182,37 @@ has on accuracy, numbers of operations and parameters.
 In this thesis I consider \bm{$\rho = 1$} to be the baseline.
 
 \section{Result with MobileNet v1 and CIFAR-10}
-\lipsum[1]
+In this section, I show the first batch of results on a CIFAR-10 dataset after
+giving some background about the dataset.
 
 \subsection{CIFAR-10 dataset}
-\lipsum[1]
+The CIFAR-10 dataset (Canadian Institute For Advanced Research) is a collection
+of images that are commonly used to train neural networks. It is one of the
+most widely used datasets for machine learning research.
+
+It consists of \textbf{60000} \bm{$32 \times 32$} colour images in
+\textbf{10 classes}, with 6000 images per class. There are 50000 training
+images and 10000 test images.
+
+The dataset is divided into five training batches and one test batch, each with
+10000 images. The test batch contains exactly 1000 randomly-selected images
+from each class. The training batches contain the remaining images in random
+order, but some training batches may contain more images from one class than
+another. Between them, the training batches contain exactly 5000 images from
+each class.
+
+The 10 different classes represent airplanes, cars, birds, cats, deer, dogs,
+frogs, horses, ships, and trucks (\autoref{fig:CIFAR_10}).
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/results/CIFAR_10.png}
+    \centering
+    \caption{CIFAR-10}\label{fig:CIFAR_10}
+\end{figure}
+
+The classes are completely mutually exclusive. There is no overlap between
+automobiles and trucks. ``Automobile'' includes sedans, SUVs, things of that
+sort. ``Truck'' includes only big trucks. Neither includes pick-up trucks.
 
 \subsection{Experiment results}
 \lipsum[1]
