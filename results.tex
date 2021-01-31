@@ -207,7 +207,7 @@ frogs, horses, ships, and trucks (\autoref{fig:CIFAR_10}).
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/results/CIFAR_10.png}
     \centering
-    \caption{CIFAR-10}\label{fig:CIFAR_10}
+    \caption{CIFAR-10 sample images}\label{fig:CIFAR_10}
 \end{figure}
 
 The classes are completely mutually exclusive. There is no overlap between
@@ -215,13 +215,43 @@ automobiles and trucks. ``Automobile'' includes sedans, SUVs, things of that
 sort. ``Truck'' includes only big trucks. Neither includes pick-up trucks.
 
 \subsection{Experiment results}
-\lipsum[1]
+Mention the stride has been modified to 1.
+Mention the baseline accuracy and size of the model.
+
+Experiment results: \todo{Experiment results with CIFAR-10}
 
 \section{Result with MobileNet v1 and ImageNet 2012}
-\lipsum[1]
+After seen the results using CIFAR-10, in this section the dataset used is
+ILSVRC (ImageNet Large Scale Visual Recognition Challenge) 2012, commonly known
+as ImageNet.
 
 \subsection{ImageNet 2012 dataset}
-\lipsum[1]
+ImageNet is an image dataset organized according to the WordNet hierarchy. Each
+meaningful concept in WordNet, possibly described by multiple words or word
+phrases, is called a ``synonym set'' or ``synset''. There are more than 100000
+synsets in WordNet, majority of them are nouns (80000+). In ImageNet, there are
+on average 1000 images to illustrate each synset.
+Images of each concept are quality-controlled and human-annotated. In its
+completion, ImageNet will offer tens of millions of cleanly sorted images for
+most of the concepts in the WordNet hierarchy (\autoref{fig:imagenet})
+
+\begin{figure}[ht]
+    \includegraphics[width=\textwidth]{images/results/imagenet.png}
+    \centering
+    \caption{ImageNet sample images}\label{fig:imagenet}
+\end{figure}
+
+The dataset I've used for the experiments has:
+
+\begin{itemize}
+    \item Train split: \textbf{1281167 images}
+    \item Validation split: \textbf{50000 images}
+\end{itemize}
+
+The ILSVRC uses a ``trimmed'' list of only \textbf{1000 image categories} or
+``classes'', including 90 of the 120 dog breeds classified by the full ImageNet
+schema.
 
 \subsection{Experiment results}
-\lipsum[1]
+Experiment results: \todo{Experiment results with ImageNet}
+
