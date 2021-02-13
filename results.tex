@@ -282,13 +282,120 @@ with this dataset: one epoch is about 1.5h and I needed to run 20 epochs.
 As I show later, the number of experiments are 20 and AWS gives me the
 flexibility to have multiple instances in parallel.
 
-\subsection{MobileNet v1 with CIFAR-10}
-Mention the stride has been modified to 1.
-Mention the baseline accuracy and size of the model.
+\subsection{Pipeline details}
+In order to run experiments, I've developed a custom pipeline (not included in
+this thesis) which executes the following steps:
+
+\begin{enumerate}
+    \item Load in memory the model architecture from a pre-trained checkpoint
+    \item Convert the model into float32, int8 and int16 tflite format
+    \item Prune the original model with given parameters
+    \item Check model sparsity and calculate loss, TOP-1 and TOP-5 accuracies
+    \item Convert the pruned model into float32, int8 and int16 tflite format
+    \item For every tflite generated, run:
+    \begin{enumerate}
+        \item Accuracy evaluation on the validation dataset (10000 samples)
+        \item Get the size and compressed size of the tflite file
+        \item Only for int8/int16 tflite files: run Ethos-U vela
+            (\autoref{sub:vela}) to get an estimation of the inference speed on
+            Ethos-U NPU and the tflite size of the vela generated tflite file.
+    \end{enumerate}
+\end{enumerate}
+
+The above pipeline has been run passing different sparsity level and
+distributions. I ran 10 pipelines for every dataset: (Heuristic, 0.5),
+(Uniform, 0.5), (Heuristic, 0.75), (Uniform, 0.75), (Heuristic, 0.8),
+(Uniform, 0.8), (Heuristic, 0.85), (Uniform, 0.85), (Heuristic, 0.9),
+(Uniform, 0.9).
+
+The pruning scheduler chosen is \texttt{PolynomialDecay}: sparsity is
+introduced slowly, model weights can take into account this impact and become
+robust to the effect of weights being dropped.
+
+Every run of the pipeline gives the following metrics:
+\begin{enumerate}
+    \item Keras model: loss, TOP-1 and TOP-5 accuracies
+    \item For every tflite file: sizes of the original model, compressed, and
+        pruned compressed
+    \item For every int8/int16 tflite file: inference speed and vela compressed
+        size
+\end{enumerate}
+
+Later I'll show graph that compares the above metrics across sparsity levels
+and distributions.
+
+\subsection{Ethos-U Vela}\label{sub:vela}
+Vela is a tool used to compile a TensorFlow Lite for Microcontroller (tflite)
+neural network model into an optimised version that can run on an embedded
+system containing an Arm Ethos-U NPU\@.
+
+In order to be accelerated by the Ethos-U NPU the network operators must be
+quantised to either 8-bit (unsigned or signed) or 16-bit (signed).
+
+The optimised model will contain TensorFlow Lite Custom operators for those
+parts of the model that can be accelerated by the Ethos-U NPU\@. Parts of the
+model that cannot be accelerated are left unchanged and will instead run on the
+Cortex-M series CPU using an appropriate kernel (such as the Arm optimised
+CMSIS-NN kernels).
+
+After compilation the optimised model can only be run on an Ethos-U NPU
+embedded system.
+
+The tool will also generate performance estimates for the compiled model.
+
+For more information about vela, please refer to PyPi home page
+\url{https://pypi.org/project/ethos-u-vela/}
+
+\subsubsection{Vela memory optimization}
+The Vela compiler also performs various memory optimizations to reduce both the
+permanent (for example flash) and runtime (for example SRAM) memory
+requirements.
+One such technique for permanent storage is the compression of all the weights
+in the model.
+
+Another technique is cascading, which addresses the runtime memory usage.
+Cascading reduces the maximum memory requirement by splitting the feature maps
+(FM) of a group of consecutively supported operators into stripes. A stripe can
+be either the full or partial width of the FM\@. And it can be the full or
+partial height of the FM\@. Each stripe in turn is then run through all the
+operators in the group.
+
+The parts of the model that can be optimized and accelerated are grouped and
+converted into TensorFlow Lite custom operators. The operators are then
+compiled into a command stream that can be executed by the Ethos-U NPU\@.
+
+Finally, the optimized model is written out as a $TFL\mu$ model and a
+Performance Estimation report is generated that provides statistics, such as
+memory usage and inference time.
+
+The compiler includes numerous configuration options that allow you to specify
+various aspects of the embedded system configuration (for example the Ethos-U
+NPU configuration, memory types, and memory sizes). There are also options to
+control the types of optimization that are performed during the compilation
+process.\cite{vela_compiler}
+
+\subsection{Results for MobileNet v1 with CIFAR-10}
+For running this experiment the classical MobileNet v1 architecture has been
+slightly modified on three layers.
+
+The original MobileNet architecture is designed for ImageNet dataset where
+images' size is $224\times224\times3$. Because CIFAR-10 images have smaller
+size ($32\times32$) I had to modify slightly the architecture.
+
+\begin{figure}[ht]
+    \includegraphics[width=10cm]{images/results/mobilenet_cifar10_diff.png}
+    \centering
+    \caption{MobileNet v1 changes for CIFAR-10}\label{fig:mobilenet_cifar10_diff}
+\end{figure}
+
+The main change is that in the first layers the \texttt{stride=2} has been
+replaced with \texttt{stride=1}.
+\autoref{fig:mobilenet_cifar10_diff} shows what the difference is between
+MobileNet for CIFAR-10 and the classical architecture.
 
 Experiment results: \todo{Experiment results with CIFAR-10}
 
-\subsection{MobileNet v1 with ImageNet 2012}
+\subsection{Results MobileNet v1 with ImageNet 2012}
 After seen the results using CIFAR-10, in this section the dataset used is
 ILSVRC (ImageNet Large Scale Visual Recognition Challenge) 2012, commonly known
 as ImageNet.
