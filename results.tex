@@ -346,7 +346,7 @@ The tool will also generate performance estimates for the compiled model.
 For more information about vela, please refer to PyPi home page
 \url{https://pypi.org/project/ethos-u-vela/}
 
-\subsubsection{Vela memory optimization}
+\subsubsection{Vela memory optimization}\label{subsub:vela_memory_optimization}
 The Vela compiler also performs various memory optimizations to reduce both the
 permanent (for example flash) and runtime (for example SRAM) memory
 requirements.
@@ -378,22 +378,282 @@ process.\cite{vela_compiler}
 For running this experiment the classical MobileNet v1 architecture has been
 slightly modified on three layers.
 
-The original MobileNet architecture is designed for ImageNet dataset where
-images' size is $224\times224\times3$. Because CIFAR-10 images have smaller
-size ($32\times32$) I had to modify slightly the architecture.
-
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/mobilenet_cifar10_diff.png}
+    \includegraphics[width=9cm]{images/results/mobilenet_cifar10_diff.png}
     \centering
     \caption{MobileNet v1 changes for CIFAR-10}\label{fig:mobilenet_cifar10_diff}
 \end{figure}
+
+The original MobileNet architecture is designed for ImageNet dataset where
+images' size is $224\times224\times3$. Because CIFAR-10 images have smaller
+size ($32\times32$) I had to modify slightly the architecture.
 
 The main change is that in the first layers the \texttt{stride=2} has been
 replaced with \texttt{stride=1}.
 \autoref{fig:mobilenet_cifar10_diff} shows what the difference is between
 MobileNet for CIFAR-10 and the classical architecture.
 
-Experiment results: \todo{Experiment results with CIFAR-10}
+The fine-tuning of the model has been done with the following hyper parameters
+which have been found with Keras Tuner
+(\url{https://keras-team.github.io/keras-tuner/}):
+
+\begin{itemize}
+    \item \textbf{Optimizer}: SGD (Stochastic Gradient Descend)
+    \item \textbf{Optimizer momentum}: 0
+    \item \textbf{Batch size}: 32
+    \item \textbf{Learning rate}: 6.995e-06 (0.000006995)
+    \item \textbf{Epochs}: 15
+    \item \textbf{Sparsity scheduler}: Polynomial Decay
+\end{itemize}
+
+\subsubsection{Accuracy and loss results}
+In this section I analyse data about accuracy and loss. The heuristic
+distribution will be always compared to the uniform distribution.
+
+For reference, \textbf{the TOP-1 accuracy of a non-pruned MobileNet v1 with
+CIFAR-10 is 0.9487.}
+
+\autoref{fig:cifar10_top1_top5_loss} shows how the two distributions impact the
+TOP-1/TOP-5 accuracies and the loss function.
+
+\begin{figure}
+    \centering
+    {\includegraphics[width=.85\linewidth]{images/results/cifar10_top1.png}}
+    {\includegraphics[width=.85\linewidth]{images/results/cifar10_top5.png}}
+    {\includegraphics[width=.85\linewidth]{images/results/cifar10_loss.png}}
+    \caption{Heuristic vs Uniform: CIFAR-10 TOP-1/TOP-5 and Loss}\label{fig:cifar10_top1_top5_loss}
+\end{figure}
+
+The first thing to notice is that the heuristic distribution always outperforms
+the uniform distribution both for TOP-1 (blue line) and TOP-5 (grey line).
+The heuristic distribution seems more robust compared to the uniform and this
+is highlighted by the fact it loses less in accuracy when the sparsity is
+increasing.
+When the sparsity is set to 0.9, the heuristic distribution has an increase of
+\textbf{2.14\% in the TOP-1} compared to the uniform distribution.
+A sweet spot though is at \textbf{sparsity 0.85}: the model doesn't lose too
+much accuracy compared to its non-pruned baseline and the sparsity is high
+enough to see benefits in terms of size, memory and latency of the inference.
+At this sparsity level, the heuristic distributions gains 1\% in accuracy
+compared to the uniform distribution, giving an accuracy of \textbf{0.9239\%}:
+this is \textbf{only 2.48\% less} than the non-pruned accuracy.
+
+The loss has a slightly different trend: up to a sparsity level of 0.8, there
+is no big difference between the two distributions with the uniform being
+slightly better.
+The trend completely flips at the latest two highest sparsity level: the loss
+of the uniform distribution increases much more compared to the heuristic one.
+This is another proof that the heuristic distribution seems more robust at
+higher sparsity levels.
+
+\begin{figure}[ht]
+    \centering
+    {\includegraphics[width=.8\linewidth]{images/results/cifar10_tflite_accuracy.png}}
+    \caption{Heuristic vs Uniform: CIFAR-10 tflite accuracy}\label{fig:cifar10_tflite_accuracy}
+\end{figure}
+
+\autoref{fig:cifar10_tflite_accuracy} shows accuracy across FP32, int8 and
+int16 tflite models both for uniform and heuristic distribution.
+
+This graph confirms the trend seen in the previous ones: independently of the
+quantization scheme used, \textbf{the heuristic distribution performs better
+than the uniform one across all sparsity levels}.
+The top 3 lines (dark blue, amber and grey) represent the accuracies of the
+heuristic distribution whilst the bottom 3 lines (yellow, light blue and green)
+represent the accuracies of the uniform distribution.
+Moreover the heuristic distribution seems to have a smoother trend across
+sparsity levels compared to the uniform distribution.
+
+\subsubsection{tflite size results}\label{subsub:tflite_size_results}
+\autoref{fig:cifar10_tflite_size} shows the sizes of tflite files across
+different sparsity levels for FP32, int8 and int16.
+
+\begin{figure}[ht]
+    \includegraphics[width=\linewidth]{images/results/cifar10_tflite_size.png}
+    \centering
+    \caption{Heuristic vs Uniform: CIFAR-10 FP32, int8, int16 tflite size}\label{fig:cifar10_tflite_size}
+\end{figure}
+
+The sparsity distribution doesn't really influence the size of the tflite:
+the distribution controls how weights are distributed across layers while
+maintaining the final sparsity of the model. \textbf{The number of weights is
+exactly the same.}
+As example let's take the 0.85 sparsity level and see how the weights are
+distributed in both heuristic and uniform distribution.
+
+\begin{lstlisting}[label={lst:heuristic_weights},
+    caption=MobileNet v1 and CIFAR-10: heuristic weights distributions]
+Conv2d_0_0:            864 weights,     384 zero weights,    0.4444444444444444 sparsity
+Conv2d_1/pointwise:    2048 weights,    1026 zero weights,   0.5009765625 sparsity
+Conv2d_2/pointwise:    8192 weights,    4851 zero weights,   0.5921630859375 sparsity
+Conv2d_3/pointwise:    16384 weights,   10448 zero weights,  0.6376953125 sparsity
+Conv2d_4/pointwise:    32768 weights,   22388 zero weights,  0.6832275390625 sparsity
+Conv2d_5/pointwise:    65536 weights,   47760 zero weights,  0.728759765625 sparsity
+Conv2d_6/pointwise:    131072 weights,  101490 zero weights, 0.7743072509765625 sparsity
+Conv2d_7/pointwise:    262144 weights,  214920 zero weights, 0.819854736328125 sparsity
+Conv2d_8/pointwise:    262144 weights,  214920 zero weights, 0.819854736328125 sparsity
+Conv2d_9/pointwise:    262144 weights,  214920 zero weights, 0.819854736328125 sparsity
+Conv2d_10/pointwise:   262144 weights,  214920 zero weights, 0.819854736328125 sparsity
+Conv2d_11/pointwise:   262144 weights,  214920 zero weights, 0.819854736328125 sparsity
+Conv2d_12/pointwise:   524288 weights,  453721 zero weights, 0.8654041290283203 sparsity
+Conv2d_13/pointwise:   1048576 weights, 955202 zero weights, 0.9109516143798828 sparsity
+top/Conv2d_1x1_output: 10250 weights,   6213 zero weights,   0.6061463414634146 sparsity
+Sparse weights: 2678083
+All weights: 3150698
+Overall model sparsity: 0.8499967309
+\end{lstlisting}
+
+As shown in \autoref{lst:heuristic_weights}, the heuristic distribution of the
+weights has set to zero about 91\% of the weights in the layer
+\texttt{Conv2d\_13/pointwise} while the first layers of the model have a
+sparsity below 50\%.
+
+For reference, \autoref{lst:uniform_weights} shows the same sparsity level
+(0.85) but with a uniform distribution. All layers have 85\% of the weights set
+to zero.
+
+\begin{lstlisting}[label={lst:uniform_weights},
+    caption=MobileNet v1 and CIFAR-10: uniform weights distributions]
+Conv2d_0_0:            864 weights,    734 zero weights,    0.8495370370370371 sparsity
+Conv2d_1/pointwise:    2048 weights,   1741 zero weights,   0.85009765625 sparsity
+Conv2d_2/pointwise:    8192 weights,   6963 zero weights,   0.8499755859375 sparsity
+Conv2d_3/pointwise:    16384 weights,  13926 zero weights,  0.8499755859375 sparsity
+Conv2d_4/pointwise:    32768 weights,  27853 zero weights,  0.850006103515625 sparsity
+Conv2d_5/pointwise:    65536 weights,  55706 zero weights,  0.850006103515625 sparsity
+Conv2d_6/pointwise:    131072 weights, 111411 zero weights, 0.8499984741210938 sparsity
+Conv2d_7/pointwise:    262144 weights, 222822 zero weights, 0.8499984741210938 sparsity
+Conv2d_8/pointwise:    262144 weights, 222822 zero weights, 0.8499984741210938 sparsity
+Conv2d_9/pointwise:    262144 weights, 222822 zero weights, 0.8499984741210938 sparsity
+Conv2d_10/pointwise:   262144 weights, 222822 zero weights, 0.8499984741210938 sparsity
+Conv2d_11/pointwise:   262144 weights, 222822 zero weights, 0.8499984741210938 sparsity
+Conv2d_12/pointwise:   524288 weights, 445645 zero weights, 0.8500003814697266 sparsity
+Conv2d_13/pointwise:   1048576 weights,891290 zero weights, 0.8500003814697266 sparsity
+top/Conv2d_1x1_output: 10250 weights,  8704 zero weights,   0.849170731707317 sparsity
+Sparse weights: 2678083
+All weights: 3150698
+Overall model sparsity: 0.8499967309
+\end{lstlisting}
+
+What the \autoref{fig:cifar10_tflite_size} highlights though is that quantized
+models have a much smaller size compared to FP32.
+
+As reference, the uncompressed version of the tflite files are:
+\begin{itemize}
+    \item \textbf{FP32}: 12.85Mb
+    \item \textbf{int8}: 3.61Mb
+    \item \textbf{int16}: 3.65Mb
+\end{itemize}
+
+At 0.85 sparsity level, there are the following gains in terms of sizes:
+\begin{itemize}
+    \item \textbf{FP32}: 12.85Mb $\rightarrow$ 3.30Mb, a \textbf{decrease of 74.31\%}
+    \item \textbf{int8}: 3.61Mb $\rightarrow$ 1.11Mb, a \textbf{decrease of 69.25\%}
+    \item \textbf{int16}: 3.65Mb $\rightarrow$ 1.13, a \textbf{decrease of 69.04\%}
+\end{itemize}
+
+As mentioned in \autoref{subsub:vela_memory_optimization}, vela compiler has a
+compression mechanism built it when parsing a tflite file. In fact vela
+generates a new tflite file which has a better compression rate compared to
+gzip. Let's take the above sparsity level (0.85) and see how vela compiler
+affects the tflite size. Of course this is true \textbf{only for quantized
+tflite models.}
+The non pruned quantized models (both int8 and int16) have a \textbf{vela size
+of 3Mb.}. The pruned ones have a \textbf{vela size of 0.91Mb}, a \textbf{a
+decrease of 69.67\%}.
+
+Let's take the 2 extreme points of the tflite sizes: FP32 non pruned and
+int8/int16 pruned at 0.85. \textbf{The tflite size goes from 12.85 to 0.91Mb,
+a decrease of 92.92\%}. The accuracy goes from 0.9487 to 0.9205
+(int8) or 0.9243 (int16), \textbf{a decrease of 2.97\% (int8) or 2.57\% (int16)}
+
+\subsubsection{Inference speed results (int8 and int16 only)}
+The inference speed showed in \autoref{fig:cifar10_inf_speed} are generated by
+vela while optimising the tflite file. Vela compiler can take multiple profiles
+depending for what NPU it needs to optimise the tflite for.
+
+\begin{figure}
+    \centering
+    \subcaptionbox{Inference speed}
+    {\includegraphics[width=1\linewidth]{images/results/cifar10_inf_speed.png}}
+    \subcaptionbox{Inferences per second}
+    {\includegraphics[width=1\linewidth]{images/results/cifar10_infs_second.png}}
+    \caption{Heuristic vs Uniform: CIFAR-10 int8, int16 inference speed}\label{fig:cifar10_inf_speed}
+\end{figure}
+
+In this case the it has been optimised for an Ethos-U55 high-end embedded NPU
+with the following characteristics: SRAM, 4 GB/s and flash, 0.5 GB/s.
+\autoref{lst:vela_output} shows vela output with estimations. At the very end
+there is the inference speed (\texttt{Batch Inference time})
+
+\begin{lstlisting}[label={lst:vela_output},
+    caption=Vela output on an int8 tflite file]
+Warning: Using internal-default values for memory mode
+Info: MEAN model_2/top/GlobalPool/Mean is a CPU only op
+Warning: Mean operation is unknown or unsupported, placing on CPU
+
+Network summary for mobilenet-v1_cifar10-int8-pruned
+Accelerator configuration               Ethos_U55_256
+System configuration             Ethos_U55_High_End_Embedded
+Memory mode                          internal-default
+Accelerator clock                                 500 MHz
+Design peak SRAM bandwidth                       4.00 GB/s
+Design peak Off-chip Flash bandwidth             0.50 GB/s
+
+Total SRAM used                                415.64 KiB
+Total Off-chip Flash used                      899.83 KiB (2.20 bits per element)
+
+69 passes fused into 58
+1/191 (52.4%) operations falling back to the CPU
+Average SRAM bandwidth                           2.82 GB/s
+Input   SRAM bandwidth                           7.71 MB/batch
+Weight  SRAM bandwidth                           6.19 MB/batch
+Output  SRAM bandwidth                           3.25 MB/batch
+Total   SRAM bandwidth                          17.19 MB/batch
+Total   SRAM bandwidth            per input     17.19 MB/inference (batch size 1)
+
+Average Off-chip Flash bandwidth                 0.14 GB/s
+Input   Off-chip Flash bandwidth                 0.11 MB/batch
+Weight  Off-chip Flash bandwidth                 0.77 MB/batch
+Output  Off-chip Flash bandwidth                 0.00 MB/batch
+Total   Off-chip Flash bandwidth                 0.88 MB/batch
+Total   Off-chip Flash bandwidth  per input      0.88 MB/inference (batch size 1)
+
+Neural network macs                         611565578 MACs/batch
+Hardware macs                               668484736 MACs/batch
+Network Tops/s                                   0.20 Tops/s
+Hardware Tops/s                                  0.22 Tops/s
+
+NPU cycles                                    2967787 cycles/batch
+SRAM Access cycles                            2148562 cycles/batch
+DRAM Access cycles                                  0 cycles/batch
+On-chip Flash Access cycles                         0 cycles/batch
+Off-chip Flash Access cycles                   881088 cycles/batch
+Total cycles                                  3044776 cycles/batch
+
+Batch Inference time                 6.09 ms,  164.22 inferences/s (batch size 1)
+\end{lstlisting}
+
+Similarly to what has been observed in \autoref{subsub:tflite_size_results},
+the distribution doesn't really impact the inference speed.
+It looks like though that the heuristic distributions is slightly faster than
+the uniform one but the increase is so small that can be ignored.
+
+\autoref{fig:cifar10_inf_speed} shows anyway that int16 is much slower than
+int8: this because the native MACs (multiply-accumulate) operations in
+Ethos-U55 are 8 (for weights) $\times$ 8 (for activations) bit.
+8$\times$16-bit operations run at half the speed of 8$\times$8-bit
+operations as a 8$\times$16 MAC is twice as complex as an 8$\times$8 MAC\@.
+
+Let's take the inference time for non-pruned tflite files and see what kind of
+speed up there is with a pruned model at 0.85.
+
+\begin{itemize}
+    \item \textbf{int8}: 8.68ms $\rightarrow$ 6.09ms, a \textbf{decrease of 29.84\%}
+    \item \textbf{int16}: 13.93ms $\rightarrow$ 11.91ms, a \textbf{decrease of 14.50\%}
+\end{itemize}
+
+Quantization has a huge benefit in terms of tflite size and latency of the
+inference and the benefits are even bigger when paired up with pruning.
 
 \subsection{Results MobileNet v1 with ImageNet 2012}
 After seen the results using CIFAR-10, in this section the dataset used is
