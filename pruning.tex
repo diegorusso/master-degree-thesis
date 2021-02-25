@@ -338,8 +338,8 @@ Whilst pruning has mostly a positive impact on the above metrics, this
 optimization might have a negative impact on accuracy of the network model. Of
 course, the drop in accuracy needs to be limited or removed completely and
 there are techniques for doing so.
-In the section though, I will focus on the trade-offs we need to consider
-when pruning a network model.
+In the section though, I will focus on the trade-offs which need to be
+considered when pruning a network model.
 
 \begin{figure}[ht]
     \includegraphics[width=11cm]{images/pruning/tradeoff.png}
@@ -360,8 +360,8 @@ inference performance. Three typical scenarios are illustrated in \autoref{fig:t
     \item \textbf{Quick deployment}: the trade-off between accuracy and
         performance is the key in this region.
     \item \textbf{Performance-driven}: this region represents the deployment on
-        highly resource-constrained devices where we reach the limit of
-        optimizations.
+        highly resource-constrained devices where the limit of optimizations is
+        reached.
 \end{itemize}
 
 Accuracy usually is measured with Top-1 and/or Top-5 terms. These are:
@@ -374,8 +374,8 @@ Accuracy usually is measured with Top-1 and/or Top-5 terms. These are:
 \end{itemize}
 
 When calculating accuracy, Top-1/5 are used to compare against other metrics.
-Depending where the model is needed for, we might need different levels of
-optimizations and they might target different kinds of metrics.
+Depending where the model is needed for, a different levels of optimizations is
+needed and they might target different kinds of metrics.
 Pruning is one of those techniques which affect any aspect of the neural
 network: model size, memory used, latency etc
 

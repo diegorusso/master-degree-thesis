@@ -481,7 +481,7 @@ exactly the same.}
 As example let's take the 0.85 sparsity level and see how the weights are
 distributed in both heuristic and uniform distribution.
 
-\begin{lstlisting}[label={lst:heuristic_weights},
+\begin{lstlisting}[label={lst:heuristic_weights_cifar10},
     caption=MobileNet v1 and CIFAR-10: heuristic weights distributions]
 Conv2d_0_0:            864 weights,     384 zero weights,    0.4444444444444444 sparsity
 Conv2d_1/pointwise:    2048 weights,    1026 zero weights,   0.5009765625 sparsity
@@ -503,8 +503,8 @@ All weights: 3150698
 Overall model sparsity: 0.8499967309
 \end{lstlisting}
 
-As shown in \autoref{lst:heuristic_weights}, the heuristic distribution of the
-weights has set to zero about 91\% of the weights in the layer
+As shown in \autoref{lst:heuristic_weights_cifar10}, the heuristic distribution
+of the weights has set to zero about 91\% of the weights in the layer
 \texttt{Conv2d\_13/pointwise} while the first layers of the model have a
 sparsity below 50\%.
 
@@ -582,11 +582,11 @@ depending for what NPU it needs to optimise the tflite for.
 
 In this case the it has been optimised for an Ethos-U55 high-end embedded NPU
 with the following characteristics: SRAM, 4 GB/s and flash, 0.5 GB/s.
-\autoref{lst:vela_output} shows vela output with estimations. At the very end
+\autoref{lst:vela_output_cifa10} shows vela output with estimations. At the very end
 there is the inference speed (\texttt{Batch Inference time})
 
-\begin{lstlisting}[label={lst:vela_output},
-    caption=Vela output on an int8 tflite file]
+\begin{lstlisting}[label={lst:vela_output_cifar10},
+    caption=MobileNet v1 and CIFAR-10: vela output on an int8 tflite file]
 Warning: Using internal-default values for memory mode
 Info: MEAN model_2/top/GlobalPool/Mean is a CPU only op
 Warning: Mean operation is unknown or unsupported, placing on CPU
@@ -660,4 +660,206 @@ After seen the results using CIFAR-10, in this section the dataset used is
 ILSVRC (ImageNet Large Scale Visual Recognition Challenge) 2012, commonly known
 as ImageNet.
 
-Experiment results: \todo{Experiment results with ImageNet}
+There are no architectural changes to the model.
+
+The fine-tuning of the model has been done with the following hyper parameters
+found via experimentations:
+
+\begin{itemize}
+    \item \textbf{Optimizer}: SGD (Stochastic Gradient Descend)
+    \item \textbf{Optimizer momentum}: 0.9
+    \item \textbf{Optimizer decay rate}: 0.9
+    \item \textbf{Learning rate decay rate}: 0.94
+    \item \textbf{Learning rate decay epochs}: 2.5
+    \item \textbf{Dropout rate}: 0.2
+    \item \textbf{Standard weight decay}: 4e-05
+    \item \textbf{Truncated normal standard deviation}: 0.09
+    \item \textbf{Batch norm decay}: 0.9997
+    \item \textbf{Batch size}: 64
+    \item \textbf{Learning rate}: 0.001
+    \item \textbf{Epochs}: 20
+    \item \textbf{Sparsity scheduler}: Polynomial Decay
+\end{itemize}
+
+\subsubsection{Accuracy and loss results}
+For ImageNet I focus mainly on the FP32 results as similar considerations to
+CIFAR-10 can be done for quantized models in terms of accuracy.
+
+Like before, the heuristic distribution will be always compared to the uniform
+distribution.
+
+For reference, \textbf{the TOP-1 accuracy of a non-pruned MobileNet v1 with
+ImageNet is 0.709.}
+
+\autoref{fig:imagenet_top1_top5_loss} shows how the two distributions impact the
+TOP-1/TOP-5 accuracies and the loss function.
+
+\begin{figure}
+    \centering
+    {\includegraphics[width=.85\linewidth]{images/results/imagenet_top1.png}}
+    {\includegraphics[width=.85\linewidth]{images/results/imagenet_top5.png}}
+    {\includegraphics[width=.85\linewidth]{images/results/imagenet_loss.png}}
+    \caption{Heuristic vs Uniform: ImageNet TOP-1/TOP-5 and Loss}\label{fig:imagenet_top1_top5_loss}
+\end{figure}
+
+Like in the previous case, the heuristic distribution always outperforms the
+uniform distribution both for TOP-1 (blue line) and TOP-5 (grey line).
+The heuristic distribution seems more a little bit more robust compared to the
+uniform one as the sparsity increases the difference between the two sparsity
+increases slightly.
+When the sparsity is set to 0.9, the heuristic distribution has an increase of
+\textbf{1.02\% in the TOP-1} compared to the uniform distribution.
+\textbf{Any sparsity bigger than 0.5 is going to have an impact in terms of
+accuracy}: the TOP-1 accuracy for a non pruned model is 0.709 and for a
+sparsity of 0.5 there is a TOP-1 accuracy of 0.7021 for the heuristic
+distribution and 0.7011 for the uniform distribution.
+If the requirements of the application need to have a close accuracy of the
+original model, then 0.5 is a pretty good sparsity level. At this point
+choosing one of the other distribution changes very little in terms of
+accuracy: the heuristic has only \textbf{0.1041\%} more accuracy than the
+uniform distribution.
+If the application requires a smaller model, it needs to compromise in the
+accuracy: from 0.75 to 0.85 sparsity level, there is a drop of about 6\%.
+At 0.85 sparsity level, the heuristic distribution has an accuracy of
+\textbf{0.6018} whilst the uniform distributions falls in the range below, at
+\textbf{0.5927}.
+At 0.9 sparsity level there is a steeper drop in accuracy (around 0.52): with
+this accuracy it might not make any sense to deploy the model at all.
+If the sparsity needs to be between 0.5 and 0.85 then the heuristic
+distribution is the one of choice as it gives better accuracy.
+
+The loss follows has a specular behaviour of the TOP-1 accuracy: at 0.5
+sparsity level the loss function is the same for both distribution.
+From 0.75 to 0.85 they increase almost in a parallel fashion and to get to 0.9
+were both distributions have a steeper increase.
+Anyway from 0.75 to 0.9 the heuristic distribution (blue line) has always a
+smaller loss function compared to the uniform.
+This is another proof that the heuristic distribution seems more robust at
+higher sparsity levels.
+
+\subsubsection{tflite size results}
+Like in the previous case, the sparsity distribution doesn't really influence
+the size of the tflite: the number of weights is exactly the same between the
+uniform and the heuristic distributions.
+
+This model though is bigger than the previous one: even the architecture is the
+same, it deals with different input size: CIFAR-10 images are 32$\times$32
+whilst ImageNet images are 224$\times$224.
+
+Let's take the 0.85 sparsity level and see how the weights are distributed
+following the heuristic distribution.
+
+\begin{lstlisting}[label={lst:heuristic_weights_imagenet},
+    caption=MobileNet v1 and ImageNet: heuristic weights distributions]
+2021-02-19 15:26:23,484 Conv2d_0_0:            864 weights,     377 zero weights,    0.4363425925925926 sparsity
+2021-02-19 15:26:23,488 Conv2d_1/pointwise:    2048 weights,    1008 zero weights,   0.4921875 sparsity
+2021-02-19 15:26:23,492 Conv2d_2/pointwise:    8192 weights,    4765 zero weights,   0.5816650390625 sparsity
+2021-02-19 15:26:23,496 Conv2d_3/pointwise:    16384 weights,   10264 zero weights,  0.62646484375 sparsity
+2021-02-19 15:26:23,500 Conv2d_4/pointwise:    32768 weights,   21993 zero weights,  0.671173095703125 sparsity
+2021-02-19 15:26:23,504 Conv2d_5/pointwise:    65536 weights,   46919 zero weights,  0.7159271240234375 sparsity
+2021-02-19 15:26:23,508 Conv2d_6/pointwise:    131072 weights,  99704 zero weights,  0.76068115234375 sparsity
+2021-02-19 15:26:23,512 Conv2d_7/pointwise:    262144 weights,  211138 zero weights, 0.8054275512695312 sparsity
+2021-02-19 15:26:23,517 Conv2d_8/pointwise:    262144 weights,  211138 zero weights, 0.8054275512695312 sparsity
+2021-02-19 15:26:23,522 Conv2d_9/pointwise:    262144 weights,  211138 zero weights, 0.8054275512695312 sparsity
+2021-02-19 15:26:23,526 Conv2d_10/pointwise:   262144 weights,  211138 zero weights, 0.8054275512695312 sparsity
+2021-02-19 15:26:23,531 Conv2d_11/pointwise:   262144 weights,  211138 zero weights, 0.8054275512695312 sparsity
+2021-02-19 15:26:23,536 Conv2d_12/pointwise:   524288 weights,  445735 zero weights, 0.8501720428466797 sparsity
+2021-02-19 15:26:23,543 Conv2d_13/pointwise:   1048576 weights, 938389 zero weights, 0.8949174880981445 sparsity
+2021-02-19 15:26:23,547 top/Conv2d_1x1_output: 1026025 weights, 915809 zero weights, 0.8925796155064448 sparsity
+2021-02-19 15:26:23,547 Sparse weights: 3540653
+2021-02-19 15:26:23,547 All weights: 4166473
+2021-02-19 15:26:23,547 Overall model sparsity: 0.849796218528237
+\end{lstlisting}
+
+As shown in \autoref{lst:heuristic_weights_imagenet}, the heuristic
+distribution of the weights has set different sparsity levels for every layer
+depending on how many weights a layer has.
+
+As reference, the uncompressed version of the tflite files are:
+\begin{itemize}
+    \item \textbf{FP32}: 16.91Mb
+    \item \textbf{int8}: 4.66Mb
+    \item \textbf{int16}: 4.71Mb
+\end{itemize}
+
+At 0.85 sparsity level, there are the following gains in terms of sizes:
+\begin{itemize}
+    \item \textbf{FP32}: 16.91Mb $\rightarrow$ 4.07Mb, a \textbf{decrease of 75.93\%}
+    \item \textbf{int8}: 4.66Mb $\rightarrow$ 1.43Mb, a \textbf{decrease of 69.31\%}
+    \item \textbf{int16}: 4.71Mb $\rightarrow$ 1.13, a \textbf{decrease of 76.01\%}
+\end{itemize}
+
+The non pruned quantized models (both int8 and int16) have a \textbf{vela size
+of 3.96Mb.}. The pruned ones have a \textbf{vela size of 1.16Mb}, a \textbf{a
+decrease of 71.46\%}.
+
+Let's take the 2 extreme points of the tflite sizes: FP32 non pruned and
+int8/int16 pruned at 0.85. \textbf{The tflite size goes from 16.91 to 1.16Mb,
+a decrease of 93.14\%}.
+
+\subsubsection{Inference speed results (int8 and int16 only)}
+Like in the previous, I have run vela for every experiment and the same
+conclusions can be made: the distribution doesn't really impact the inference
+speed.
+It looks like though that the heuristic distributions is slightly faster than
+the uniform one but the increase is so small that can be ignored.
+
+Let's take the inference time for non-pruned tflite files and see what kind of
+speed up there is with a pruned model at 0.85 (as shown in
+\autoref{lst:vela_output_imagenet})
+
+\begin{lstlisting}[label={lst:vela_output_imagenet},
+    caption=MobileNet v1 and ImageNet: vela output on an int8 tflite file]
+Info: MEAN model_2/top/GlobalPool/Mean is a CPU only op
+Warning: Mean operation is unknown or unsupported, placing on CPU
+
+Network summary for mobilenet-v1_imagenet2012-int8-pruned
+Accelerator configuration               Ethos_U55_256
+System configuration             Ethos_U55_High_End_Embedded
+Memory mode                          internal-default
+Accelerator clock                                 500 MHz
+Design peak SRAM bandwidth                       4.00 GB/s
+Design peak Off-chip Flash bandwidth             0.50 GB/s
+
+Total SRAM used                                599.80 KiB
+Total Off-chip Flash used                     1130.38 KiB (2.11 bits per element)
+
+69 passes fused into 63
+1/187 (53.5%) operations falling back to the CPU
+Average SRAM bandwidth                           2.69 GB/s
+Input   SRAM bandwidth                           9.77 MB/batch
+Weight  SRAM bandwidth                           6.40 MB/batch
+Output  SRAM bandwidth                           5.06 MB/batch
+Total   SRAM bandwidth                          21.24 MB/batch
+Total   SRAM bandwidth            per input     21.24 MB/inference (batch size 1)
+
+Average Off-chip Flash bandwidth                 0.14 GB/s
+Input   Off-chip Flash bandwidth                 0.12 MB/batch
+Weight  Off-chip Flash bandwidth                 0.99 MB/batch
+Output  Off-chip Flash bandwidth                 0.00 MB/batch
+Total   Off-chip Flash bandwidth                 1.12 MB/batch
+Total   Off-chip Flash bandwidth  per input      1.12 MB/inference (batch size 1)
+
+Neural network macs                         568749545 MACs/batch
+Hardware macs                               677312576 MACs/batch
+Network Tops/s                                   0.14 Tops/s
+Hardware Tops/s                                  0.17 Tops/s
+
+NPU cycles                                    3812208 cycles/batch
+SRAM Access cycles                            2655593 cycles/batch
+DRAM Access cycles                                  0 cycles/batch
+On-chip Flash Access cycles                         0 cycles/batch
+Off-chip Flash Access cycles                  1115488 cycles/batch
+Total cycles                                  3946734 cycles/batch
+
+Batch Inference time                 7.89 ms,  126.69 inferences/s (batch size 1)
+\end{lstlisting}
+
+
+\begin{itemize}
+    \item \textbf{int8}: 11.84ms $\rightarrow$ 7.89ms, a \textbf{decrease of 33.36\%}
+    \item \textbf{int16}: 17.71ms $\rightarrow$ 14.73ms, a \textbf{decrease of 16.83\%}
+\end{itemize}
+
+These measurements are anyway bigger than the previous case because the model
+generated is bigger hence it needs more time to be executed by the NPU\@.
