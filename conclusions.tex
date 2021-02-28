@@ -1,8 +1,44 @@
 \chapter{Conclusions}
-\lipsum[1]
+Pruning is an excellent technique of model optimization: it allows to
+dramatically decrease the size of a model with no or low impact in accuracy.
 
-\section{Limitations}
-\lipsum[1]
+In this thesis I have demonstrated the benefits of the heuristic distribution
+of weights while pruning a model: layers with mode weights can be pruned more
+compared to layers with less weights while maintaining the final sparsity
+specified by the user.
 
-\section{Next steps}
-\lipsum[1]
+To further optimise the model, quantization can be applied: the non-uniform
+distribution of the weights though doesn't affect the quantization process.
+
+The heuristic distribution results more robust compared to the uniform
+distribution of weights: in MobileNet v1, for both CIFAR-10 and ImageNet the
+heuristic distribution of weights always outperforms the uniform distribution.
+This is true from a sparsity level of 0.5 up to 0.9: especially in the CIFAR-10
+case, this difference increases with higher sparsity levels giving a difference
+in accuracy of 2.14\%.
+
+The work in this thesis represents a solid base for enabling non-uniform
+distributions of weights in TensorFlow Model Optimization.
+
+As next steps, I have identified the following:
+
+\begin{itemize}
+    \item \textbf{Upstream code to GitHub}: using this thesis as starting
+        point, create a RFC proposal and engage with Google to receive
+        feedback. Once details have been agreed, a pull request in GitHub
+        can be raised in order to be merged in TFMOT\@.
+        As part of the pull request, user documentation, testing (unit tests
+        and end-to-end tests) need to be written.
+    \item \textbf{Provide more off-the-shelf heuristics}: the architecture of
+        the code has been designed in a way to be as generic as possible: the
+        user can implement his/her own distributions of weights and pass
+        it to the pruning parameters.
+        As extra step, more off-the-shelf heuristic distributions can be
+        offered to the user: Erd\H{o}s-R\'{e}nyi and Erd\H{o}s-R\'{e}nyi-Kernel
+        (ERK)\cite{rigl}
+    \item \textbf{Expand tests on new architecture/datasets}: this thesis
+        focussed only on MobileNet v1 architecture with CIFAR-10 and ImageNet
+        datasets. In order to further prove the benefits of the heuristic
+        distribution of weights, tests on more comprehensive set of
+        architectures and datasets need to be performed.
+\end{itemize}
