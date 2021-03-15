@@ -55,7 +55,7 @@ There are the following dimensions:
 So in a normal convolution the total computational cost is
 \bm{$D_k \times D_k \times M \times N \times D_f \times D_f$}
 
-The above convolution can be split in 2 phases:
+The above convolution can be divided  in 2 phases:
 \begin{enumerate}
     \item Depthwise convolution
     \item Pointwise convolution
@@ -229,12 +229,15 @@ most of the concepts in the WordNet hierarchy (\autoref{fig:imagenet})
     \caption{ImageNet sample images}\label{fig:imagenet}
 \end{figure}
 
-The dataset I've used for the experiments has:
+The dataset I've used for the experiments has the following sets:
 
 \begin{itemize}
-    \item Train split: \textbf{1281167 images}
-    \item Validation split: \textbf{50000 images}
+    \item \texttt{train} containing \textbf{1281167 images}
+    \item \texttt{validation} containing \textbf{50000 images}
 \end{itemize}
+
+There supposed to be a \texttt{test} set but it doesn't have labels because no
+labels have been publicly released.
 
 The ILSVRC uses a ``trimmed'' list of only \textbf{1000 image categories} or
 ``classes'', including 90 of the 120 dog breeds classified by the full ImageNet
