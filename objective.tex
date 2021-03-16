@@ -1,8 +1,167 @@
-\chapter{Implementation}\label{ch:implementation}
-This chapter shows the code that implements the pruning with heuristic
-explained in \autoref{sec:heuristic}.
+\chapter{Objective: per-layer pruning with heuristic}\label{ch:objective}
+This chapter is divided in three main sections: \autoref{sec:heuristic} gives a
+theoretical explanation of the per-layer pruning with heuristic, whilst
+\autoref{sec:architecturesolution} and \autoref{sec:mnistpipeline} explain how
+to change the API in TensorFlow Model Optimization in order to use this
+technique.
 
-\section{Codebase}
+\section{Per-layer pruning with heuristic}\label{sec:heuristic}
+\autoref{ch:pruning} explained various aspects about pruning and how TFMOT
+implements it. This was needed to fully comprehend the content of this section
+where I talk about the objective of this thesis.
+
+\subsection{Distribution of sparsity}
+TFMOT supports two pruning schedules: constant sparsity and polynomial decay.
+The schedule specifies when and what sparsity to apply to the network and this
+is applied equally across all layer of the network model.
+
+This hints to the first distribution type a network model can have,
+\textbf{uniform distribution}. With this distribution basically the same
+pruning level is applied to all prunable layers, regardless of their operation
+types, sizes, and shapes.
+The uniform distribution is the only distribution implemented in TFMOT at the
+time of writing.
+
+The distribution can be based on \textbf{reinforcement learning} or
+\textbf{optimization based}. The tuning of the sparsity distribution and other
+hyper-parameters can be viewed as a search problem whose solutions can be
+learned\cite{He_2018} by training a reinforcement learning agent or optimized
+by techniques such as simulated annealing. This approach penalizes accuracy
+loss and encourages model compression with single or multiple objectives.
+Real or estimated hardware performance statistics can be used by this approach
+to guide the tuning and produce target-specific optimized models.
+
+Another option is to base the sparsity distribution on a \textbf{heuristic}.
+The heuristic is any approach to problem solving or self-discovery that employs
+a practical method that is not guaranteed to be optimal, perfect, or rational,
+but is nevertheless sufficient for reaching an immediate, short-term goal or
+approximation.
+Where finding an optimal solution is impossible or impractical, heuristic
+methods can be used to speed up the process of finding a satisfactory solution.
+Heuristics can be mental shortcuts that ease the cognitive load of making a
+decision.\cite{heuristic}
+
+\subsection{Heuristic details}
+After seeing examples of sparsity distribution and what a heuristic is, in this
+subsection I explain how the heuristic affects the sparsity distribution.
+
+The \textbf{target pruning ratio} (\texttt{pr}) can be distributed based on a
+simple heuristic: the more parameters a layer has, the more prunable it becomes
+due to the redundancy.
+
+The function uses a heuristic to calculate the optimum sparsity per each
+individual layer while still maintaining the requested target pruning ratio.
+
+The heuristic is based on the simple intuition that a layer with more weights
+has more redundancy and, therefore, can have a higher pruning ratio without
+affecting performance, while a lower number of prunable weights would be more
+sensitive to pruning and therefore be assigned a smaller target pruning ratio.
+
+More specifically, the per-layer target pruning ratio can be defined as
+
+\begin{equation}
+    pr_i = \alpha \cdot \log|layer_i|
+\end{equation}
+
+where $|layer_i|$ denotes the \textbf{number of parameters in $i^{th}$ layer},
+and the \textbf{weighted coefficient $\alpha$} as
+
+\begin{equation}
+    \alpha = \frac{pr \cdot \sum|layer_i|}{\sum(|layer_i| \cdot \log|layer_i|)}
+\end{equation}
+
+This heuristic has been verified with many networks and shown its effectiveness
+at distributing the overall target sparsity. I'll be showing the effect of the
+heuristic in \autoref{ch:experiments}.
+
+\subsubsection{Custom heuristic formula}
+The above heuristic formula is a fixed one and the user doesn't have any
+control of it. A useful addition would be to allow the user to specify his/her
+own heuristic formula to define the sparsity distribution across layers of the
+entire model.
+
+In \autoref{sec:architecturesolution} I will show how the user can use a custom
+formula to prune the entire model. For this to work, the object that implements
+the formula needs to have access to the whole model.
+
+If the user uses the default formula, it's already proven the final sparsity is
+respected. This might not be the case when using custom formulas.
+A sanity check mechanism is needed in order to ensure the custom formula
+respects the final sparsity. If this is not the case, the user should be warned
+that the custom formula might return unexpected results as it might produce a
+sparsity different from the final one specified.
+
+\subsection{What should it be pruned?}
+Currently in TensorFlow it is possible to prune the following objects:
+\begin{itemize}
+    \item \textbf{Model}: this could be either sequential or functional.
+    \item \textbf{List of layers}: it is implemented but not so supported or
+        documented.
+    \item \textbf{Layer}: this is the basic object that can be pruned with
+        TensorFlow pruning API\@.
+\end{itemize}
+
+In order to prune using the heuristic, the algorithm need knowledge of the
+whole model because it needs to apply different sparsity at layer level whilst
+maintaining a specific target/final sparsity set by the user.
+
+For this reason pruning with heuristic is \textbf{supported only on the whole
+model} hence the single layer is not supported at all and the framework should
+raise an error.
+
+Pruning with heuristic to a list of layer doesn't have much sense and it
+doesn't seem to be a use case for that hence it is not supported and the
+framework should raise an error.
+
+\subsection{Heuristic with PolynomialDecay scheduler}
+The PolynomialDecay scheduler requires some special consideration when used
+with heuristic.
+
+\begin{lstlisting}[language=Python, label={lst:polynomialdecay},
+    caption=PolynomialDecay Scheduler in TFMOT]
+|*\ldots*|
+
+pruning_schedule = tfmot.sparsity.keras.PolynomialDecay(
+    initial_sparsity=0.3,
+    final_sparsity=0.8,
+    begin_step=2000,
+    end_step=4000)
+
+|*\ldots*|
+\end{lstlisting}
+
+As it is shown in \autoref{lst:polynomialdecay}, the scheduler has both initial
+and final sparsity.
+There is an issue when the \textbf{initial sparsity is bigger than the final
+sparsity} calculated by the heuristic for a specific layer.
+For instance, if the heuristic calculates the sparsity of a layer to be 0.2,
+this will clash with the \texttt{initial\_sparsity=0.3}.
+In order to address this issue, a couple of approaches can be taken:
+
+\begin{enumerate}
+    \item When the initial sparsity is bigger than the layer's final sparsity
+        calculated by the heuristic, the initial sparsity is ignored and set to
+        zero. In this way, the final sparsity of the layer it will be always
+        bigger than the initial sparsity. A warning is raised when this
+        happens.
+    \item When the initial sparsity is bigger than the layer's final sparsity
+        calculated by the heuristic, the initial sparsity is considered in
+        proportion of the final sparsity. In \autoref{lst:polynomialdecay} the
+        \texttt{initial\_sparsity} is set to 0.3. If the heuristic calculates
+        the final sparsity of a layer to be 0.2, then the initial sparsity for
+        that layer will be set to $0.3 * 0.2 = 0.06$
+        A warning is raised when this happens.
+\end{enumerate}
+
+The approach used in \autoref{sec:architecturesolution} is the first one: when
+the initial sparsity is bigger than the sparsity that the heuristic has
+calculated, the initial sparsity will be ignored and set to zero.
+The reason why I implement the first one is to have some consistency in the
+pruning API\@: in the second approach the \texttt{initial\_sparsity} has a
+different semantic meaning at run time depending of the value of the layer's
+final sparsity and this could be confusing for the user.
+
+\section{Architecture of the solution}\label{sec:architecturesolution}
 The whole implementation is contained in the TensorFlow Model Optimization
 (TFMOT)
 repository\footnote{\url{https://github.com/tensorflow/model-optimization}}
@@ -12,160 +171,6 @@ is an improvements of the current pruning API\@.
 At the time of writing the code is not public yet: the upstream process usually
 lasts for months and it involves various discussion with Google.
 
-In the next subsections I show briefly the current API for pruning, the API for
-pruning with heuristic and then some explanation of the code behind the
-implementation.
-
-\subsection{Pruning API in TFMOT}
-Pruning API in TFMOT are very easy to use. Below an example that shows how to
-prune a model. I skip the details of building the model and focus more on the
-pruning. In \autoref{sec:mnistpipeline} I'll show details on how to create a
-model.
-
-\begin{lstlisting}[language=Python, label={lst:tfmotpruningexample},
-    caption=Pruning example in TFMOT]
-import tempfile
-import os
-
-import tensorflow as tf
-import numpy as np
-
-from tensorflow import keras
-import tensorflow_model_optimization as tfmot
-
-# Load MNIST dataset
-mnist = keras.datasets.mnist
-(train_images, train_labels), (test_images, test_labels) = mnist.load_data()
-
-# Normalize the input image so that each pixel value is between 0 to 1.
-train_images = train_images / 255.0
-test_images = test_images / 255.0
-
-# Build and train the model
-model = build_and_train_your_model()
-
-prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
-
-# Compute end step to finish pruning after 2 epochs
-batch_size = 128
-epochs = 2
-
-# 10% of training set will be used for validation set
-validation_split = 0.1
-
-num_images = train_images.shape[0] * (1 - validation_split)
-end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
-
-# Define pruning parameters
-pruning_params = {
-  "pruning_schedule": tfmot.sparsity.keras.PolynomialDecay(
-    initial_sparsity=0.4,
-    final_sparsity=0.8,
-    begin_step=0,
-    end_step=end_step)
-}
-
-model_for_pruning = prune_low_magnitude(model, **pruning_params)
-
-# "prune_low_magnitude" requires a recompile
-model_for_pruning.compile(
-  optimizer='adam',
-  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-  metrics=['accuracy']
-)
-
-logdir = tempfile.mkdtemp()
-
-callbacks = [
-  tfmot.sparsity.keras.UpdatePruningStep(),
-  tfmot.sparsity.keras.PruningSummaries(log_dir=logdir),
-]
-
-# Fine tune with pruning for two epochs
-model_for_pruning.fit(
-  train_images,
-  train_labels,
-  batch_size=batch_size,
-  epochs=epochs,
-  validation_split=validation_split,
-  callbacks=callbacks
-)
-
-# Evaluate the accuracy of the pruned model
-_, model_for_pruning_accuracy = model_for_pruning.evaluate(
-  test_images,
-  test_labels,
-  verbose=0
-)
-print('Pruned test accuracy:', model_for_pruning_accuracy)
-\end{lstlisting}
-
-The \autoref{lst:tfmotpruningexample} can be divided in the following three
-sections:
-
-\begin{enumerate}
-    \item Define and train the model (lines 1--31)
-    \item Setup the model pruning (lines 33--49)
-    \item Prune, fine tuning weights and evaluate the model (lines 51--74)
-\end{enumerate}
-
-Below more details of the three sections.
-
-\subsubsection{Define and train the model}
-Apart the usual imports at the top of the file, the
-MNIST\footnote{\url{http://yann.lecun.com/exdb/mnist/}} dataset is loaded
-generating the split between training and test images (line 12).
-10\% of the dataset is kept for validation purposes (line 28)
-
-\texttt{build\_and\_train\_your\_model} is a custom function to define and
-train the model.
-
-\texttt{batch\_size = 128} defines the number of samples that will be
-propagated through the network. In this case 128 samples at the time are taken
-and propagated through the network.
-The main advantage is the memory usage: the memory footprint is the equivalent
-of loading 128 samples of the training data at any time.
-
-\texttt{epochs = 2} means that the training will do a full pass twice over the
-full training set. Please note that in this case the epochs defines how many
-passes the pruning training will do.
-
-Finally the number if images are the full set minus 10\% reserved to
-validation (line 30). The shape of \texttt{train\_images} is the following
-
-\begin{lstlisting}[language=Python, caption=Shape of train\_images]
->>> train_images.shape
-(60000, 28, 28)
-\end{lstlisting}
-
-The first element is the number if images present in the dataset.
-
-With all data above, the \texttt{end\_step} is then calculated.
-
-\subsubsection{Setup the model pruning}
-In this block, the model is prepared for the pruning activity.
-This is done by defining the pruning parameters. In this case only the pruning
-schedule has been defined (lines 34--40).
-
-\texttt{prune\_low\_magnitude} accepts as parameters the trained model and the
-dictionary with the pruning settings: the function has the goal to augment the
-model layers with pruning information taken by the pruning parameters.
-The resulting model then is compiled again (lines 45--49) before calling the
-\texttt{fit} method.
-
-\subsubsection{Prune, fine tuning weights and evaluate the model}
-After the compilation of the model, it is finally time to prune the model.
-
-The \texttt{UpdatePruningStep} callback is the one that updates pruning
-wrappers with the optimizer step. Not adding this callback to the \texttt{fit}
-method will result in throwing an error.
-
-Finally the \texttt{fit} method fine-tunes the weights thanks to the callbacks
-definition above.
-After the pruning, the model is evaluated and return the accuracy of the new
-model (lines 69--74)
-
-\subsection{Pruning API with Heuristic}
 If the heuristic based pruning needs to be applied, few lines of the above
 example need to be changed.
 

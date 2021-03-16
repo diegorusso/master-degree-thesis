@@ -1,4 +1,4 @@
-\chapter{Results}\label{ch:results}
+\chapter{Experiments}\label{ch:experiments}
 In this chapter I show how the pruning with heuristic affects MobileNet
 v1\cite{howard2017mobilenets} based models. The experiments will be run using
 both CIFAR-10\cite{cifar_10} and ImageNet 2012\cite{imagenet_cvpr09}.
@@ -12,7 +12,7 @@ It is based on a streamlined architecture that uses depthwise separable
 convolutions to build light weight deep neural networks.
 
 \begin{figure}[ht]
-    \includegraphics[width=\textwidth]{images/results/mobilenet_applications.png}
+    \includegraphics[width=\textwidth]{images/experiments/mobilenet_applications.png}
     \centering
     \caption{MobileNet applications}\label{fig:mobilenet_applications}
 \end{figure}
@@ -34,7 +34,7 @@ is a \textbf{depthwise convolution followed by a pointwise convolution}.
 A normal convolution is shown in \autoref{fig:convolution}
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/convolution.png}
+    \includegraphics[width=10cm]{images/experiments/convolution.png}
     \centering
     \caption{Convolution}\label{fig:convolution}
 \end{figure}
@@ -65,7 +65,7 @@ The first one is the \textbf{depthwise convolution} and it is shown in
 \autoref{fig:depthwise_convolution}.
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/depthwise_convolution.png}
+    \includegraphics[width=10cm]{images/experiments/depthwise_convolution.png}
     \centering
     \caption{Depthwise convolution}\label{fig:depthwise_convolution}
 \end{figure}
@@ -79,7 +79,7 @@ The second phase is the \textbf{pointwise convolution} as shown in
 \autoref{fig:pointwise_convolution}.
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/pointwise_convolution.png}
+    \includegraphics[width=10cm]{images/experiments/pointwise_convolution.png}
     \centering
     \caption{Pointwise convolution}\label{fig:pointwise_convolution}
 \end{figure}
@@ -113,7 +113,7 @@ There are 28 convolutional layers (counting depthwise and pointwise layers) and
 (\autoref{fig:mobilenet_architecture}).
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/mobilenet_architecture.png}
+    \includegraphics[width=10cm]{images/experiments/mobilenet_architecture.png}
     \centering
     \caption{MobileNet architecture}\label{fig:mobilenet_architecture}
 \end{figure}
@@ -127,7 +127,7 @@ of K mutually exclusive classes. In the case of MobileNet, when used with
 ImageNet, it can classify up to 1000 classes.
 
 \begin{figure}[ht]
-    \includegraphics[width=8cm]{images/results/mobilenet_convolution.png}
+    \includegraphics[width=8cm]{images/experiments/mobilenet_convolution.png}
     \centering
     \caption{Normal convolution vs MobileNet convolution}\label{fig:mobilenet_convolution}
 \end{figure}
@@ -152,7 +152,7 @@ The \autoref{fig:mobilenet_widthmultiplier} shows the impact that $\alpha$ has
 on accuracy, numbers of operations and parameters.
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/mobilenet_widthmultiplier.png}
+    \includegraphics[width=10cm]{images/experiments/mobilenet_widthmultiplier.png}
     \centering
     \caption{Width multiplier impact}\label{fig:mobilenet_widthmultiplier}
 \end{figure}
@@ -174,7 +174,7 @@ The \autoref{fig:mobilenet_resolutionmultiplier} shows the impact that $\rho$
 has on accuracy, numbers of operations and parameters.
 
 \begin{figure}[ht]
-    \includegraphics[width=10cm]{images/results/mobilenet_resolutionmultiplier.png}
+    \includegraphics[width=10cm]{images/experiments/mobilenet_resolutionmultiplier.png}
     \centering
     \caption{Resolution multiplier impact}\label{fig:mobilenet_resolutionmultiplier}
 \end{figure}
@@ -204,7 +204,7 @@ The 10 different classes represent airplanes, cars, birds, cats, deer, dogs,
 frogs, horses, ships, and trucks (\autoref{fig:CIFAR_10}).
 
 \begin{figure}[ht]
-    \includegraphics[width=\textwidth]{images/results/CIFAR_10.png}
+    \includegraphics[width=\textwidth]{images/experiments/CIFAR_10.png}
     \centering
     \caption{CIFAR-10 sample images}\label{fig:CIFAR_10}
 \end{figure}
@@ -224,7 +224,7 @@ completion, ImageNet will offer tens of millions of cleanly sorted images for
 most of the concepts in the WordNet hierarchy (\autoref{fig:imagenet})
 
 \begin{figure}[ht]
-    \includegraphics[width=\textwidth]{images/results/imagenet.png}
+    \includegraphics[width=\textwidth]{images/experiments/imagenet.png}
     \centering
     \caption{ImageNet sample images}\label{fig:imagenet}
 \end{figure}
@@ -243,7 +243,7 @@ The ILSVRC uses a ``trimmed'' list of only \textbf{1000 image categories} or
 ``classes'', including 90 of the 120 dog breeds classified by the full ImageNet
 schema.
 
-\section{Experiment results}
+\section{Analysis of the experiment results}
 After a brief explanation of the model and the datasets used for the
 experiments, in this section I show what results I have in pruning MobileNet v1
 with CIFAR-10 and ImageNet.
@@ -382,7 +382,7 @@ For running this experiment the classical MobileNet v1 architecture has been
 slightly modified on three layers.
 
 \begin{figure}[ht]
-    \includegraphics[width=9cm]{images/results/mobilenet_cifar10_diff.png}
+    \includegraphics[width=9cm]{images/experiments/mobilenet_cifar10_diff.png}
     \centering
     \caption{MobileNet v1 changes for CIFAR-10}\label{fig:mobilenet_cifar10_diff}
 \end{figure}
@@ -421,9 +421,9 @@ TOP-1/TOP-5 accuracies and the loss function.
 
 \begin{figure}
     \centering
-    {\includegraphics[width=.85\linewidth]{images/results/cifar10_top1.png}}
-    {\includegraphics[width=.85\linewidth]{images/results/cifar10_top5.png}}
-    {\includegraphics[width=.85\linewidth]{images/results/cifar10_loss.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/cifar10_top1.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/cifar10_top5.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/cifar10_loss.png}}
     \caption{Heuristic vs Uniform: CIFAR-10 TOP-1/TOP-5 and Loss}\label{fig:cifar10_top1_top5_loss}
 \end{figure}
 
@@ -451,7 +451,7 @@ higher sparsity levels.
 
 \begin{figure}[ht]
     \centering
-    {\includegraphics[width=.8\linewidth]{images/results/cifar10_tflite_accuracy.png}}
+    {\includegraphics[width=.8\linewidth]{images/experiments/cifar10_tflite_accuracy.png}}
     \caption{Heuristic vs Uniform: CIFAR-10 tflite accuracy}\label{fig:cifar10_tflite_accuracy}
 \end{figure}
 
@@ -472,7 +472,7 @@ sparsity levels compared to the uniform distribution.
 different sparsity levels for FP32, int8 and int16.
 
 \begin{figure}[ht]
-    \includegraphics[width=\linewidth]{images/results/cifar10_tflite_size.png}
+    \includegraphics[width=\linewidth]{images/experiments/cifar10_tflite_size.png}
     \centering
     \caption{Heuristic vs Uniform: CIFAR-10 FP32, int8, int16 tflite size}\label{fig:cifar10_tflite_size}
 \end{figure}
@@ -577,9 +577,9 @@ depending for what NPU it needs to optimise the tflite for.
 \begin{figure}
     \centering
     \subcaptionbox{Inference speed}
-    {\includegraphics[width=1\linewidth]{images/results/cifar10_inf_speed.png}}
+    {\includegraphics[width=1\linewidth]{images/experiments/cifar10_inf_speed.png}}
     \subcaptionbox{Inferences per second}
-    {\includegraphics[width=1\linewidth]{images/results/cifar10_infs_second.png}}
+    {\includegraphics[width=1\linewidth]{images/experiments/cifar10_infs_second.png}}
     \caption{Heuristic vs Uniform: CIFAR-10 int8, int16 inference speed}\label{fig:cifar10_inf_speed}
 \end{figure}
 
@@ -699,9 +699,9 @@ TOP-1/TOP-5 accuracies and the loss function.
 
 \begin{figure}
     \centering
-    {\includegraphics[width=.85\linewidth]{images/results/imagenet_top1.png}}
-    {\includegraphics[width=.85\linewidth]{images/results/imagenet_top5.png}}
-    {\includegraphics[width=.85\linewidth]{images/results/imagenet_loss.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/imagenet_top1.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/imagenet_top5.png}}
+    {\includegraphics[width=.85\linewidth]{images/experiments/imagenet_loss.png}}
     \caption{Heuristic vs Uniform: ImageNet TOP-1/TOP-5 and Loss}\label{fig:imagenet_top1_top5_loss}
 \end{figure}
 
