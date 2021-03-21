@@ -1,20 +1,24 @@
 \begin{abstract}
-In the last decade Deep Learning has had a incredible success due to the
-increasing availability of big data and the decreasing cost of compute power.
-The research has been massive in all fields around Deep Learning: from new
-network models to solve different problems to optimizations of such models
-for deployment to edge devices with limited resources.
-With almost 100 papers in the literature, pruning is amongst these techniques
-with the aim to optimize the models to be more power and memory efficient while
-having no or little drop in the accuracy.
-This thesis shows a specific pruning technique: layers of a network model are
-pruned based on a heuristic whilst respecting the target sparsity of the
-network model.
-After explaining the theory behind this approach, the code is explained and
-applied to a simple MNIST based network model using TensorFlow Model
-Optimization.
-The ending chapter shows results of experiments running on MobileNet v1
-architecture using CIFAR-10 and ImageNet 2012 as datasets.
-The heuristic distribution of weights behave more robustly compared to the
-uniform distribution especially with higher sparsity levels.
+In the last decade \textit{Deep Learning} has had a incredible success due to
+the increasing availability of big data and the decreasing cost of
+computational power.
+A massive amount of  research effort has regarded the investigation of new
+neural network models for application to different domains, and an increasing
+interested has arisen techniques on for optimizing deployment of such models to
+edge devices with limited resources.
+The aim of these techniques is to optimize the generated deep learning models
+to be more efficient with respect to computational power and memory
+requirements while having no or little loss in accuracy, thus allowing
+efficient deployment of a neural network model to edge devices.
+The aim of this thesis is to investigate and validate a specific pruning
+technique: layers of a network model are pruned based on a heuristic whilst
+respecting the target sparsity of the network model.
+After introducing the theory behind this approach, the application design is
+presented and its implementation experimented to a simple MNIST based network
+model using TensorFlow Model Optimization.
+Experiments have been held on MobileNet v1 architecture using CIFAR-10 and
+ImageNet 2012 as datasets.
+Experimental results of the pruning technique are presented, in particular we
+observe that, the heuristic distribution of weights behave more robustly
+compared to the uniform distribution especially with higher sparsity levels.
 \end{abstract}

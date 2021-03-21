@@ -1,14 +1,15 @@
 \chapter{Objective: per-layer pruning with heuristic}\label{ch:objective}
-This chapter is divided in three main sections: \autoref{sec:heuristic} gives a
-theoretical explanation of the per-layer pruning with heuristic, whilst
-\autoref{sec:architecturesolution} and \autoref{sec:mnistpipeline} explain how
-to change the API in TensorFlow Model Optimization in order to use this
-technique.
+This chapter regards the main objective of this thesis: the technique of
+per-layer pruning with heuristic. It is divided in three main sections:
+\autoref{sec:heuristic} gives the theoretical background, while section
+\autoref{sec:architecturesolution} and \autoref{sec:mnistpipeline} focus on the
+changes to be introduced in API in TensorFlow Model Optimization in order to
+use this technique.
 
 \section{Per-layer pruning with heuristic}\label{sec:heuristic}
-\autoref{ch:pruning} explained various aspects about pruning and how TFMOT
-implements it. This was needed to fully comprehend the content of this section
-where I talk about the objective of this thesis.
+In \autoref{ch:pruning} various aspects are explained about pruning and how
+TFMOT implements it. This is a needed prerequisites to fully comprehend the
+content of this section.
 
 \subsection{Distribution of sparsity}
 TFMOT supports two pruning schedules: constant sparsity and polynomial decay.
@@ -38,16 +39,17 @@ but is nevertheless sufficient for reaching an immediate, short-term goal or
 approximation.
 Where finding an optimal solution is impossible or impractical, heuristic
 methods can be used to speed up the process of finding a satisfactory solution.
-Heuristics can be mental shortcuts that ease the cognitive load of making a
-decision.\cite{heuristic}
+In short, heuristics can be considered as mental shortcuts that ease the
+cognitive load of making a decision, without affecting performance in most
+practical cases.\cite{heuristic}
 
 \subsection{Heuristic details}
-After seeing examples of sparsity distribution and what a heuristic is, in this
-subsection I explain how the heuristic affects the sparsity distribution.
+After seeing examples of sparsity distribution, in this subsection I explain
+how the heuristic can affects the sparsity distribution.
 
-The \textbf{target pruning ratio} (\texttt{pr}) can be distributed based on a
-simple heuristic: the more parameters a layer has, the more prunable it becomes
-due to the redundancy.
+The \textbf{\textit{target pruning ratio}} (\texttt{pr}) can be distributed
+based on a simple heuristic: the more parameters a layer has, the more prunable
+it becomes due to the redundancy.
 
 The function uses a heuristic to calculate the optimum sparsity per each
 individual layer while still maintaining the requested target pruning ratio.
@@ -71,12 +73,12 @@ and the \textbf{weighted coefficient $\alpha$} as
 \end{equation}
 
 This heuristic has been verified with many networks and shown its effectiveness
-at distributing the overall target sparsity. I'll be showing the effect of the
-heuristic in \autoref{ch:experiments}.
+at distributing the overall target sparsity\cite{wu2018pocketflow}. I'll be
+showing the effect of the heuristic in \autoref{ch:experiments}.
 
 \subsubsection{Custom heuristic formula}
 The above heuristic formula is a fixed one and the user doesn't have any
-control of it. A useful addition would be to allow the user to specify his/her
+control of it. A useful extension would be to allow the user to specify his/her
 own heuristic formula to define the sparsity distribution across layers of the
 entire model.
 

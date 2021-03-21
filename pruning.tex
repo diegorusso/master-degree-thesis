@@ -11,8 +11,8 @@ implementation of this technique in TensorFlow Model Optimization.
 \section{What's pruning?}
 Neural network pruning is the task of reducing the size of a network by
 removing parameters. This compression affects the size of the model, the
-latency, the amount of memory and the compute power needed to run the
-inference. These metrics need to balanced with the accuracy of the model
+latency, the amount of memory and the computational power needed to run the
+inference. These metrics need to be balanced with the accuracy of the model
 itself. I give a more detailed analysis about this trade-off in
 \autoref{subsec:tradeoff}
 
@@ -21,10 +21,11 @@ interest in the past decade thanks to the rise of deep neural networks.
 It sets its roots with a couple of classic papers:\textit{Optimal Brain
 Damage}~\cite{lecun-90b} and \textit{Optimal Brain Surgeon}\cite{hassibi-93}
 
-In the last decade (2010\-2020) a few dozens of papers have been published in
-literature about pruning and all of them have been showing that pruning is an
-effective technique that can be applied to a variety of neural network on
-different fields (image and speech recognition, text processing, etc\ldots).
+In the last decade (2010--2020) a few dozens papers have been published in
+literature about pruning\cite{blalock2020state} and all of them have been
+showing that pruning is an effective technique that can be applied to a variety
+of neural network on different fields (image and speech recognition, text
+processing, etc\ldots).
 Moreover they highlights that pruning is a versatile technique as, I said
 earlier, it has a positive impact on multiple metrics, all important for a
 better edge deployment of the model.
@@ -51,35 +52,39 @@ How does pruning reduce the size of a model? The basic principle is to prune
 
 \subsection{Pruning techniques}
 The main problem in pruning is to understand what to prune. Of course the goal
-is to remove nodes and/or weights that are less useful. There are different
-methods to understand what to prune with very little or no effect on accuracy.
-Below e brief description of different techniques.
+is to remove nodes and/or weights that are less useful, i.e.\ whose removal
+does not greatly affect the model performance. There are different methods to
+understand what to prune with very little or no effect on accuracy.
+Below a brief description of different pruning techniques is given.
 
 \subsubsection{Magnitude Pruning}
-Functions can be a very simple case of a neural network. Its coefficients can
-be changed in order to learn the input data points. There are coefficients
-that, despite changing their values, they won't change the behaviour of the
-function and these are referred as \textbf{non-significant}.
+A neural network can be expressed in many ways and functions can be a very
+simple case of a neural network. Its coefficients can be changed in order to
+learn the input data points.
+There are coefficients that, despite changing their values, they won't change
+the behaviour of the function and these are referred as
+\textbf{non-significant}.
 In neural networks these coefficients are weights and biases: they are
 \textbf{trainable parameters} and the same non-significant concept can be
-applied to them with bit more complexity.
+applied to them with a bit more complexity.
 
 During the back-propagation (gradient descent) some weights are updated with
 larger gradient magnitudes (both positive and negative) than the others.
 These weights are the \textbf{significant} ones and the weights receiving very
 small gradients can be considered as \textbf{non-significant} as their impact
 is minimal to the optimization of the loss function.
-After the training, the weight magnitude of every layer can be explored and
-check which weights are significant.
+After the training, the weight magnitude of every layer can be explored in
+order to check which weights are significant.
 
-So the weight magnitude is the criteria for pruning the neural network.
-At this point a \textbf{threshold} is specified and all the weights below this
-threshold are considered non-significant. This is usually combined with a
+The weight magnitude can then be used as a criteria for pruning the neural
+network.
+In this technique a \textbf{threshold} is specified and all the weights below
+this threshold are considered non-significant. This is usually combined with a
 \textbf{sparsity target} the network should achieve.
 The \textbf{non-significant weights will be zeroed}, cancelling effectively
 their impact in the neural network.
-This can be applied to biases as well (to any trainable parameter to be
-precise).
+This can be applied to biases as well and, in general, to any trainable
+parameter, to be precise.
 
 Once the pruning is done it's always advisable to retrain the network in order
 to compensate for any drop in performance. It's worth noticing that during the
@@ -90,8 +95,8 @@ Magnitude pruning is the technique I will be using in
 
 \subsubsection{Channel Pruning}
 Channel pruning is a technique specifically for CNN (Convolutional Neural
-Network) as it rely on the architecture of this type of networks. The building
-blocks of a CNN are (see \autoref{fig:cnn}):
+Network) as it relies on the architecture of this type of networks.
+The building blocks of a classical CNN are (see \autoref{fig:cnn}):
 
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/pruning/cnn.jpeg}
@@ -156,15 +161,15 @@ The first is the channel selection, since a proper channel combination to
 maintain as much information needs to be selected.
 The second is reconstruction. The following feature maps need to be
 reconstructed using the selected channels. Motivated by this, the process is an
-iterative two-step algorithm.
+\textit{\textbf{iterative two-step algorithm}}.
 
-In the first step, the aim is to select most representative channels.
+In the first step, the aim is to \textit{select most representative channels}.
 Since an exhaustive search is infeasible even for tiny networks, a LASSO
 regression based method needs to be performed to figure out representative
 channels and prune redundant ones.
 
-In the second step, outputs are reconstructed with remaining channels with
-linear least squares.
+In the second step, \textit{outputs are reconstructed with remaining channels}
+with linear least squares.
 
 The whole model can be pruned applying the approach layer by layer
 sequentially. For each layer, input volumes are obtained from the current input
@@ -173,12 +178,13 @@ model.\cite{He_2017}
 
 \subsubsection{Structured Pruning}
 Pruning techniques can be broadly categorized as structured or unstructured.
-Unstructured pruning does not follow a specific geometry or constraint. In most
-cases, this technique needs extra information to represent sparse locations. It
-depends on sparse representation for computational benefits. On the other hand,
-structured sparsity places non-zero parameters at well-defined locations. This
-kind of constraint enables modern CPUs and graphics processing units (GPUs) to
-easily exploit computational savings.
+\textit{Unstructured pruning} does not follow a specific geometry or
+constraint. In most cases, this technique needs extra information to represent
+sparse locations. It depends on sparse representation for computational
+benefits.
+On the other hand, \textit{structured sparsity} places non-zero parameters at
+well-defined locations. This kind of constraint enables modern CPUs and
+graphics processing units (GPUs) to easily exploit computational savings.
 
 \begin{figure}[ht]
     \includegraphics[width=\textwidth]{images/pruning/structured_pruning.png}
@@ -186,16 +192,16 @@ easily exploit computational savings.
     \caption{Structured pruning}\label{fig:structured_pruning}
 \end{figure}
 
-Channel, kernel and intra-kernel sparsity could be a mean of structured
-pruning. In channel level pruning, all the incoming and outgoing weights
-to/from a feature map are pruned. Channel level pruning can directly produce a
-lightweight network.
-Kernel level pruning drops a full k × k kernel, whereas the intra-kernel
-sparsity prunes weights in a kernel. The intra kernel strided sparsity can
-significantly speed-up convolution layer processing.
-The kernel level pruning is a special case of intra-kernel sparsity with
-100\% pruning. These granularities can be applied in various combinations and
-different orders.\cite{Anwar_2017}
+Channel, kernel and intra-kernel sparsity could be a mean of \textit{structured
+pruning}. In \textit{channel level pruning}, all the incoming and outgoing
+weights to/from a feature map are pruned. Channel level pruning can directly
+produce a lightweight network.
+\textit{Kernel level pruning} drops a full k × k kernel, whereas the
+intra-kernel sparsity prunes weights in a kernel. The intra kernel strided
+sparsity can significantly speed-up convolution layer processing.
+The kernel level pruning is a special case of \textit{intra-kernel sparsity}
+with 100\% pruning. These granularities can be applied in various combinations
+and different orders.\cite{Anwar_2017}
 
 \subsection{Pruning pipeline}
 So far I've been explaining what pruning is and what kind of techniques exist
@@ -241,20 +247,20 @@ connection), respectively.
 Only the regularization term will push the weights to zero. Thus, the dead
 neurons will be automatically removed during retraining.~\cite{han2015learning}
 
-In this thesis I focus mainly on the traditional pipeline but the work can be
-easily used with other pipelines.
+In this thesis we will focus mainly on the traditional pipeline but the
+described approach can be easily applied to other pruning pipelines.
 
 \subsubsection{Training from scratch}
-Another pipeline is ``training from scratch'' where the network pruning is
-rethought.
-Generally, there are two common beliefs behind this pruning procedure. First,
-it is believed that starting with training a large, over-parametrized network
-is important as it provides a high-performance model (due to stronger
+Another pruning pipeline is ``training from scratch'' where the network pruning
+is rethought.
+Generally, there are two common assumed beliefs behind this pruning procedure.
+First, it is assumed that starting with training a large, over-parametrized
+network is important as it provides a high-performance model (due to stronger
 representation \& optimization power) from which one can safely remove a set of
-redundant parameters without significantly hurting the accuracy. Therefore,
+redundant parameters without significantly affecting the accuracy. Therefore,
 this is usually believed, and reported to be superior to directly training a
 smaller network from scratch \- a commonly used baseline approach.
-Second, both the pruned architecture and its associated weights are believed to
+Second, both the pruned architecture and its associated weights are assumed to
 be essential for obtaining the final efficient model. Thus most existing
 pruning techniques choose to fine-tune a pruned model instead of training it
 from scratch. The preserved weights after pruning are usually considered to be
@@ -293,7 +299,7 @@ Is it necessary for learning the pruned model structure from pre-trained
 weights?
 After some research it has been found that the answer is quite surprising: an
 effective pruned structure does not have to be learned from pre-trained
-weights.
+weights~\cite{Wang_2020}.
 
 It has been empirically shown that the pruned structures discovered from
 pre-trained weights tend to be homogeneous, which limits the possibility of
@@ -328,7 +334,7 @@ This approach not only greatly reduces the pre-training burden of traditional
 pruning methods, but also achieves similar or even higher accuracy under the
 same computation budget.~\cite{Wang_2020}
 
-\subsection{Pruning trade-offs}\label{subsec:tradeoff}
+\subsection{Pruning-Accuracy trade-offs}\label{subsec:tradeoff}
 When a neural network is pruned, its structure and architecture might change
 affecting various characteristic. Pruning affects mostly sparsity of the model
 and this has an effect on model size, memory used for inference, number of
