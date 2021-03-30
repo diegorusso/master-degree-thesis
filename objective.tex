@@ -6,6 +6,26 @@ per-layer pruning with heuristic. It is divided in three main sections:
 changes to be introduced in API in TensorFlow Model Optimization in order to
 use this technique.
 
+\paragraph{Arm Ltd.}
+The work illustrated in this thesis is part of the ML Tooling project within
+MLG (ML Group) at Arm Ltd.
+The vision of the project is to advance open source tools for neural network
+training and optimisation tools to enable partners and ecosystem to take
+advantage of optimum performance and the full range of features available in
+Arm hardware and software.
+
+In order to maximize the performance and power advantages, NPUs (Neural Process
+Unit\cite{ethos-u65,ethos-n78}) require the networks to be optimised and
+converted to int8/int16 format.
+
+Improving the functionality, coverage and user experience of existing ecosystem
+tools will make it easy for developers to target ML for all Arm IP\@.
+This project ensures that it is easy to use open source tools to prepare
+machine learning models for running efficiently on Arm IP\@.
+This includes approaches to quantizing and retraining networks to
+8/16 bit, compressing weights, and reducing operations with pruning and
+clustering trained weights.
+
 \section{Per-layer pruning with heuristic}\label{sec:heuristic}
 In \autoref{ch:pruning} various aspects are explained about pruning and how
 TFMOT implements it. This is a needed prerequisites to fully comprehend the
