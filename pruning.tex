@@ -18,15 +18,15 @@ itself. I give a more detailed analysis about this trade-off in
 
 Pruning has been used since the late 1980s but has seen an explosion of
 interest in the past decade thanks to the rise of deep neural networks.
-It sets its roots with a couple of classic papers:\textit{Optimal Brain
+It sets its roots with a couple of classic papers: \textit{Optimal Brain
 Damage}~\cite{lecun-90b} and \textit{Optimal Brain Surgeon}\cite{hassibi-93}
 
-In the last decade (2010--2020) a few dozens papers have been published in
+In the last decade (2010--2020) a few dozen papers have been published in
 literature about pruning\cite{blalock2020state} and all of them have been
 showing that pruning is an effective technique that can be applied to a variety
 of neural network on different fields (image and speech recognition, text
 processing, etc\ldots).
-Moreover they highlights that pruning is a versatile technique as, I said
+Moreover, they highlight that pruning is a versatile technique as, I said
 earlier, it has a positive impact on multiple metrics, all important for a
 better edge deployment of the model.
 
@@ -51,8 +51,8 @@ How does pruning reduce the size of a model? The basic principle is to prune
 \end{itemize}
 
 \subsection{Pruning techniques}
-The main problem in pruning is to understand what to prune. Of course the goal
-is to remove nodes and/or weights that are less useful, i.e.\ whose removal
+The main problem in pruning is to understand what to prune. Of course, the goal
+is to remove nodes and/or weights that are less useful, i.e., whose removal
 does not greatly affect the model performance. There are different methods to
 understand what to prune with very little or no effect on accuracy.
 Below a brief description of different pruning techniques is given.
@@ -65,10 +65,10 @@ There are coefficients that, despite changing their values, they won't change
 the behaviour of the function and these are referred as
 \textbf{non-significant}.
 In neural networks these coefficients are weights and biases: they are
-\textbf{trainable parameters} and the same non-significant concept can be
+\textbf{trainable parameters}, and the same non-significant concept can be
 applied to them with a bit more complexity.
 
-During the back-propagation (gradient descent) some weights are updated with
+During the back propagation (gradient descent) some weights are updated with
 larger gradient magnitudes (both positive and negative) than the others.
 These weights are the \textbf{significant} ones and the weights receiving very
 small gradients can be considered as \textbf{non-significant} as their impact
@@ -76,7 +76,7 @@ is minimal to the optimization of the loss function.
 After the training, the weight magnitude of every layer can be explored in
 order to check which weights are significant.
 
-The weight magnitude can then be used as a criteria for pruning the neural
+The weight magnitude can then be used as a criterion for pruning the neural
 network.
 In this technique a \textbf{threshold} is specified and all the weights below
 this threshold are considered non-significant. This is usually combined with a
@@ -111,7 +111,7 @@ The building blocks of a classical CNN are (see \autoref{fig:cnn}):
         input results in a map of activations called a feature map, indicating
         the locations and strength of a detected feature in an input, such as
         an image.
-    \item \textbf{Pooling layer}: it provide an approach to down sampling
+    \item \textbf{Pooling layer}: it provides an approach to down sampling
         feature maps by summarizing the presence of features in patches of the
         feature map. Two common pooling methods are average pooling and max
         pooling that summarize the average presence of a feature and the most
@@ -135,7 +135,7 @@ The building blocks of a classical CNN are (see \autoref{fig:cnn}):
     \item \textbf{Loss layer}: it specifies how training penalizes the
         deviation between the predicted (output) and true labels and is
         normally the final layer of a neural network. Various loss functions
-        appropriate for different tasks may be used. Softmax loss is used for
+        appropriate for different tasks may be used. SoftMax loss is used for
         predicting a single class of K mutually exclusive classes.
         Sigmoid cross-entropy loss is used for predicting K independent
         probability values in [0, 1]. Euclidean loss is used for regressing to
@@ -148,8 +148,7 @@ The aim is to reduce the number of channels of feature map B, while maintaining
 outputs in feature map C.
 Once the channels are pruned, corresponding channels of the filters that take
 these channels as input can be removed. Moreover, filters that produce these
-channels can be removed as well. It is clear that channel pruning involves
-two key steps.
+channels can be removed as well. Channel pruning involves two key steps.
 
 \begin{figure}[ht]
     \includegraphics[width=8cm]{images/pruning/channel_pruning.png}
@@ -165,7 +164,7 @@ reconstructed using the selected channels. Motivated by this, the process is an
 
 In the first step, the aim is to \textit{select most representative channels}.
 Since an exhaustive search is infeasible even for tiny networks, a LASSO
-regression based method needs to be performed to figure out representative
+regression-based method needs to be performed to figure out representative
 channels and prune redundant ones.
 
 In the second step, \textit{outputs are reconstructed with remaining channels}
@@ -197,14 +196,14 @@ pruning}. In \textit{channel level pruning}, all the incoming and outgoing
 weights to/from a feature map are pruned. Channel level pruning can directly
 produce a lightweight network.
 \textit{Kernel level pruning} drops a full k × k kernel, whereas the
-intra-kernel sparsity prunes weights in a kernel. The intra kernel strided
+intra-kernel sparsity prunes weights in a kernel. The intra kernel stride
 sparsity can significantly speed-up convolution layer processing.
 The kernel level pruning is a special case of \textit{intra-kernel sparsity}
 with 100\% pruning. These granularities can be applied in various combinations
 and different orders.\cite{Anwar_2017}
 
 \subsection{Pruning pipeline}
-So far I've been explaining what pruning is and what kind of techniques exist
+So far, I've been explaining what pruning is and what kind of techniques exist
 to pruning neural networks. Let's take a step back and see how these techniques
 fit the big picture of the pruning pipeline.
 There are different ways to apply pruning to neural networks:
@@ -247,7 +246,7 @@ connection), respectively.
 Only the regularization term will push the weights to zero. Thus, the dead
 neurons will be automatically removed during retraining.~\cite{han2015learning}
 
-In this thesis we will focus mainly on the traditional pipeline but the
+In this thesis we will focus mainly on the traditional pipeline, but the
 described approach can be easily applied to other pruning pipelines.
 
 \subsubsection{Training from scratch}
@@ -261,7 +260,7 @@ redundant parameters without significantly affecting the accuracy. Therefore,
 this is usually believed, and reported to be superior to directly training a
 smaller network from scratch \- a commonly used baseline approach.
 Second, both the pruned architecture and its associated weights are assumed to
-be essential for obtaining the final efficient model. Thus most existing
+be essential for obtaining the final efficient model. Thus, most existing
 pruning techniques choose to fine-tune a pruned model instead of training it
 from scratch. The preserved weights after pruning are usually considered to be
 critical.
@@ -272,9 +271,9 @@ critical.
     \caption{Pruning pipeline with training from scratch}\label{fig:liu_pipeline}
 \end{figure}
 
-With training from scratch, both of the beliefs mentioned above are not
-necessarily true for structured pruning methods, which prune at the levels of
-convolution channels or larger.
+With training from scratch, both beliefs mentioned above are not necessarily
+true for structured pruning methods, which prune at the levels of convolution
+channels or larger.
 For structured pruning methods with predefined target network architectures,
 directly training the small target model from random initialization can achieve
 the same, if not better, performance, as the model obtained from the
@@ -284,7 +283,7 @@ the pruned model from scratch can also achieve comparable or even better
 performance than fine-tuning.
 Interestingly, for unstructured pruning method that prunes individual
 parameters, training from scratch can mostly achieve comparable accuracy with
-pruning and fine-tuning on smaller-scale datasets, but fails to do so on the
+pruning and fine-tuning on smaller scale datasets but fails to do so on the
 large-scale ImageNet benchmark.
 Note that in some cases, if a pre-trained large model is already available,
 pruning and fine-tuning from it can save the training time required to obtain
@@ -292,8 +291,8 @@ the efficient model.~\cite{liu2018rethinking}
 
 \subsubsection{Pruning from scratch}
 In this pipeline, pre-training an over-parametrized model is not necessary
-step for obtaining the target pruned structure. In fact, a fully-trained
-over-parametrized model will reduce the search space for the pruned structure.
+step for obtaining the target pruned structure. In fact, a fully trained
+over parametrized model will reduce the search space for the pruned structure.
 
 Is it necessary for learning the pruned model structure from pre-trained
 weights?
@@ -337,7 +336,7 @@ same computation budget.~\cite{Wang_2020}
 \subsection{Pruning-Accuracy trade-offs}\label{subsec:tradeoff}
 When a neural network is pruned, its structure and architecture might change
 affecting various characteristic. Pruning affects mostly sparsity of the model
-and this has an effect on model size, memory used for inference, number of
+and this influences model size, memory used for inference, number of
 parameters, speed and latency, compute power and energy needed for
 interference.
 Whilst pruning has mostly a positive impact on the above metrics, this
@@ -380,8 +379,8 @@ Accuracy usually is measured with Top-1 and/or Top-5 terms. These are:
 \end{itemize}
 
 When calculating accuracy, Top-1/5 are used to compare against other metrics.
-Depending where the model is needed for, a different levels of optimizations is
-needed and they might target different kinds of metrics.
+Depending on where the model is needed for, a different level of optimizations
+is needed, and they might target different kinds of metrics.
 Pruning is one of those techniques which affect any aspect of the neural
 network: model size, memory used, latency etc
 
@@ -389,7 +388,7 @@ It can be more or less aggressively tuned depending what level of optimization
 the network needs to have.
 When pruning a neural network, due its over-parametrized and redundant nature,
 a usual target sparsity could be between 50\% and 80\%.
-These values though depend from the model used and the result of the
+These values though depend on the model used and the result of the
 evaluation, hence they can be more than 80\% as well.
 
 \section{An overview of pruning in TensorFlow Model Optimization}\label{sec:pruningtfmot}
@@ -454,8 +453,8 @@ It is known that PolynomialDecay applies the pruning gradually: if the pruning
 is applied later in the training, the network has time to converge leading to
 more robust and stable results.
 The same can be applied with ConstantSparsity since the pruning starts, the
-sparsity will be applied straight away and this might cause some instability in
-the results.
+sparsity will be applied straight away, and this might cause some instability
+in the results.
 The best way to choose the schedule is through experimentation.
 
 \subsection{Pruning API in TFMOT}
@@ -569,10 +568,10 @@ The main advantage is the memory usage: the memory footprint is the equivalent
 of loading 128 samples of the training data at any time.
 
 \texttt{epochs = 2} means that the training will do a full pass twice over the
-full training set. Please note that in this case the epochs defines how many
+full training set. Please note that in this case the epoch defines how many
 passes the pruning training will do.
 
-Finally the number if images are the full set minus 10\% reserved to
+Finally, the number if images are the full set minus 10\% reserved to
 validation (line 30). The shape of \texttt{train\_images} is the following
 
 \begin{lstlisting}[language=Python, caption=Shape of train\_images]
@@ -598,11 +597,11 @@ The resulting model then is compiled again (lines 45--49) before calling the
 \subsubsection{Prune, fine tuning weights and evaluate the model}
 After the compilation of the model, it is finally time to prune the model.
 
-The \texttt{UpdatePruningStep} callback is the one that updates pruning
-wrappers with the optimizer step. Not adding this callback to the \texttt{fit}
+The \texttt{UpdatePruningStep} call-back is the one that updates pruning
+wrappers with the optimizer step. Not adding this call-back to the \texttt{fit}
 method will result in throwing an error.
 
-Finally the \texttt{fit} method fine-tunes the weights thanks to the callbacks
-definition above.
+Finally, the \texttt{fit} method fine-tunes the weights thanks to the
+call-back's definition above.
 After the pruning, the model is evaluated and return the accuracy of the new
 model (lines 69--74)

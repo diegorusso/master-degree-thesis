@@ -9,7 +9,7 @@ use this technique.
 \paragraph{Arm Ltd.}
 The work illustrated in this thesis is part of the ML Tooling project within
 MLG (ML Group) at Arm Ltd.
-The vision of the project is to advance open source tools for neural network
+The vision of the project is to advance open-source tools for neural network
 training and optimisation tools to enable partners and ecosystem to take
 advantage of optimum performance and the full range of features available in
 Arm hardware and software.
@@ -20,7 +20,7 @@ converted to int8/int16 format.
 
 Improving the functionality, coverage and user experience of existing ecosystem
 tools will make it easy for developers to target ML for all Arm IP\@.
-This project ensures that it is easy to use open source tools to prepare
+This project ensures that it is easy to use open-source tools to prepare
 machine learning models for running efficiently on Arm IP\@.
 This includes approaches to quantizing and retraining networks to
 8/16 bit, compressing weights, and reducing operations with pruning and
@@ -28,13 +28,13 @@ clustering trained weights.
 
 \section{Per-layer pruning with heuristic}\label{sec:heuristic}
 In \autoref{ch:pruning} various aspects are explained about pruning and how
-TFMOT implements it. This is a needed prerequisites to fully comprehend the
+TFMOT implements it. This is a needed prerequisite to fully comprehend the
 content of this section.
 
 \subsection{Distribution of sparsity}
 TFMOT supports two pruning schedules: constant sparsity and polynomial decay.
 The schedule specifies when and what sparsity to apply to the network and this
-is applied equally across all layer of the network model.
+is applied equally across all layers of the network model.
 
 This hints to the first distribution type a network model can have,
 \textbf{uniform distribution}. With this distribution basically the same
@@ -60,8 +60,8 @@ approximation.
 Where finding an optimal solution is impossible or impractical, heuristic
 methods can be used to speed up the process of finding a satisfactory solution.
 In short, heuristics can be considered as mental shortcuts that ease the
-cognitive load of making a decision, without affecting performance in most
-practical cases.\cite{heuristic}
+cognitive load of deciding, without affecting performance in most practical
+cases.\cite{heuristic}
 
 \subsection{Heuristic details}
 After seeing examples of sparsity distribution, in this subsection I explain
@@ -127,12 +127,12 @@ In order to prune using the heuristic, the algorithm need knowledge of the
 whole model because it needs to apply different sparsity at layer level whilst
 maintaining a specific target/final sparsity set by the user.
 
-For this reason pruning with heuristic is \textbf{supported only on the whole
+For this reason, pruning with heuristic is \textbf{supported only on the whole
 model} hence the single layer is not supported at all and the framework should
 raise an error.
 
-Pruning with heuristic to a list of layer doesn't have much sense and it
-doesn't seem to be a use case for that hence it is not supported and the
+Pruning with heuristic to a list of layers doesn't have much sense and it
+doesn't seem to be a use case for that hence it is not supported, and the
 framework should raise an error.
 
 \subsection{Heuristic with PolynomialDecay scheduler}
@@ -180,7 +180,7 @@ the initial sparsity is bigger than the sparsity that the heuristic has
 calculated, the initial sparsity will be ignored and set to zero.
 The reason why I implement the first one is to have some consistency in the
 pruning API\@: in the second approach the \texttt{initial\_sparsity} has a
-different semantic meaning at run time depending of the value of the layer's
+different semantic meaning at run time depending on the value of the layer's
 final sparsity and this could be confusing for the user.
 
 \section{Architecture of the solution}\label{sec:architecturesolution}
@@ -188,7 +188,7 @@ The whole implementation is contained in the TensorFlow Model Optimization
 (TFMOT)
 repository\footnote{\url{https://github.com/tensorflow/model-optimization}}
 This because the pruning with heuristic is a training-time optimization and it
-is an improvements of the current pruning API\@.
+is an improvement of the current pruning API\@.
 
 At the time of writing the code is not public yet: the upstream process usually
 lasts for months and it involves various discussion with Google.
@@ -247,8 +247,8 @@ There are few key points to highlight in the implementation:
         method in order to define the custom distribution to apply to model's
         layers.
 
-        Actual layer's information are stored in a data structure inside the
-        instance of the class and it will be exported using
+        Actual layer's information is stored in a data structure inside the
+        instance of the class, and it will be exported using
         \texttt{get\_sparsity\_map} method.
 
         The class has also a mechanism that checks if the projected sparsity
@@ -267,9 +267,9 @@ There are few key points to highlight in the implementation:
         The function will revert back to the classic
         \texttt{prune\_low\_magnitude} in the following cases:
         \texttt{sparsity\_distribution} is not an instance of \linebreak
-        \texttt{SparsityDistribution} or it is not defined and the object to
-        prune is not a sequential of functional model. In this cases a warning
-        will be printed saying the heuristic cannot be applied.
+        \texttt{SparsityDistribution}, or it is not defined and the object to
+        prune is not a sequential of functional model. In these cases, a
+        warning will be printed saying the heuristic cannot be applied.
 \end{itemize}
 
 For a deeper understanding of the implementation,
@@ -418,7 +418,7 @@ The output can be divided in three main blocks. These are:
 \subsubsection{Lines 1--39}
 The table with the list of layers is produced by the
 \texttt{summary\string(\string)} method. The main thing to notice is the amount
-of trainable and non trainable parameters: the latter are zero.
+of trainable and non-trainable parameters: the latter are zero.
 
 After the table there is the output produced by the
 \texttt{fit\string(\string)} method follow by the loss and accuracy of the
@@ -442,15 +442,15 @@ parameters are set to 1.
 After the pruning which runs for 2 epochs, the \textbf{actual sparsity} of the
 model is calculated: the sparsity matches the projected sparsity printed in the
 previous block. After the pruning, the model doesn't need to carry the extra
-information hence it is stripped: in fact the table now shows the ``right''
-amount of parameters. The stripping of these parameters if critical if the
+information hence it is stripped: in fact, the table now shows the ``right''
+number of parameters. The stripping of these parameters if critical if the
 model needs to be compressed.
 
 The accuracy of the pruned model is \textbf{0.994} which is slightly better
 than the original model.
 
 \subsubsection{Lines 110--114}
-Finally the last block of output shows information about sizes of the models
+Finally, the last block of output shows information about sizes of the models
 saved to disk. There are four models saved:
 \begin{itemize}
     \item \textbf{mnist.h5} is 13121.672 KB
@@ -462,7 +462,7 @@ The non-zipped models have the same size: this is normal because the pruned
 model, although it has 80\% of weights to zero, it stills needs variable
 allocation to host these zeroed weights.
 
-In the zipped models instead there is a big difference: the non-pruned models
+In the zipped models instead, there is a big difference: the non-pruned model
 is about \textbf{12MB} whilst the pruned one is \textbf{3.8MB}: this because
 the pruned model has sparse weights and the one with zero can be easily
 compressed reducing the size.

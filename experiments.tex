@@ -20,11 +20,11 @@ convolutions to build light weight deep neural networks.
 
 Convolutional neural networks have been more popular in the recent years and
 their accuracy increased thanks to more complex architecture increasing their
-size whilst impacting negatively in speed. In many real world applications,
+size whilst impacting negatively in speed. In many real-world applications,
 these networks need to run on edge devices with limited resources and the
 inferences need to be carried out in a timely fashion.
 
-The main focus of MobileNet is to increase the efficiency of the network by
+The focus of MobileNet is to increase the efficiency of the network by
 decreasing the number of parameters by not compromising
 performance\cite{review_mobilenet}.
 
@@ -42,7 +42,7 @@ A normal convolution is shown in \autoref{fig:convolution}
 
 In the figure there is an input image size of $12\times12\times3$ and the
 kernel (or filter) is $5\times5\times3$ with stride = 1. There are though 10
-kernels to apply and this gives an output image of $8\times8\times10$.
+kernels to apply, and this gives an output image of $8\times8\times10$.
 The total computational cost is \bm{$12\times12\times5\times5\times3\times10 =
 108000$}.
 
@@ -53,7 +53,7 @@ There are the following dimensions:
     \item Convolution kernel: \bm{$D_k \times D_k \times M \times N$}
 \end{itemize}
 
-So in a normal convolution the total computational cost is
+So, in a normal convolution the total computational cost is
 \bm{$D_k \times D_k \times M \times N \times D_f \times D_f$}
 
 The above convolution can be divided  in 2 phases:
@@ -97,7 +97,7 @@ The computation for each step is:
     \item Pointwise convolution: \bm{$8 \times 8 \times 3 \times 10 = 1920$}
 \end{enumerate}
 
-Therefore the total number of computations is \textbf{10800 + 1920 = 12720}
+Therefore, the total number of computations is \textbf{10800 + 1920 = 12720}
 
 More generically the computational cost is \bm{$D_k \times D_k \times M \times
 D_f \times D_f + M \times N \times D_f \times D_f$}
@@ -110,7 +110,7 @@ The network architecture is built on depthwise separable convolutions except
 for the first layer which is a full convolution
 
 There are 28 convolutional layers (counting depthwise and pointwise layers) and
-1 fully connected layer followed by a softmax layer
+1 fully connected layer followed by a SoftMax layer
 (\autoref{fig:mobilenet_architecture}).
 
 \begin{figure}[ht]
@@ -119,12 +119,12 @@ There are 28 convolutional layers (counting depthwise and pointwise layers) and
     \caption{MobileNet architecture}\label{fig:mobilenet_architecture}
 \end{figure}
 
-All layers are followed by a batch normalization and ReLU non linearity
-(\autoref{fig:mobilenet_convolution}) with the exception of the final fully
-connected layer which has no non linearity and feeds into a softmax layer for
+All layers are followed by a batch normalization and ReLU non-linearity
+(\autoref{fig:mobilenet_convolution}) except for the final fully connected
+layer which has no non-linearity and feeds into a SoftMax layer for
 classification.
-As seen earlier in the thesis, the softmax is used to to predict a single class
-of K mutually exclusive classes. In the case of MobileNet, when used with
+As seen earlier in the thesis, the SoftMax is used to predict a single class of
+K mutually exclusive classes. In the case of MobileNet, when used with
 ImageNet, it can classify up to 1000 classes.
 
 \begin{figure}[ht]
@@ -144,7 +144,7 @@ The role of the width multiplier $\alpha$ is to thin a network uniformly at
 each layer: the number of input channels M becomes $\alpha M$ and the number of
 output channels N becomes $\alpha N$.
 
-So depth wise separable computational cost becomes \bm{$D_k \times D_k \times
+So, depthwise separable computational cost becomes \bm{$D_k \times D_k \times
 \alpha M \times D_f \times D_f + \alpha M \times \alpha N \times D_f \times
 D_f$} where $\alpha \in \interval[open left]{0}{1}$ with typical settings of 1,
 0.75, 0.5, 0.25.
@@ -167,7 +167,7 @@ and the internal representation of every layer is subsequently reduced by the
 same multiplier.
 Including $\rho$, the computational cost becomes \bm{$D_k \times D_k \times
 \alpha M \times \rho D_f \times \rho D_f + \alpha M \times \alpha N \times \rho
-D_f \times \rho D_f$} where $\rho \in \interval[open left]{0}{1}$i which is
+D_f \times \rho D_f$} where $\rho \in \interval[open left]{0}{1}$ which is
 typically set implicitly so that the input resolution of the network is 224,
 192, 160 or 128.
 
@@ -195,7 +195,7 @@ It consists of \textbf{60000} \bm{$32 \times 32$} colour images in
 images and 10000 test images.
 
 The dataset is divided into five training batches and one test batch, each with
-10000 images. The test batch contains exactly 1000 randomly-selected images
+10000 images. The test batch contains exactly 1000 randomly selected images
 from each class. The training batches contain the remaining images in random
 order, but some training batches may contain more images from one class than
 another. Between them, the training batches contain exactly 5000 images from
@@ -237,7 +237,7 @@ The dataset I've used for the experiments has the following sets:
     \item \texttt{validation} containing \textbf{50000 images}
 \end{itemize}
 
-There supposed to be a \texttt{test} set but it doesn't have labels because no
+There supposed to be a \texttt{test} set, but it doesn't have labels because no
 labels have been publicly released.
 
 The ILSVRC uses a ``trimmed'' list of only \textbf{1000 image categories} or
@@ -283,7 +283,7 @@ characteristics:
 
 The reason I chose AWS for ImageNet is because of the time the training takes
 with this dataset: one epoch is about 1.5h and I needed to run 20 epochs.
-As I show later, the number of experiments are 20 and AWS gives me the
+As I show later, the number of experiments is 20 and AWS gives me the
 flexibility to have multiple instances in parallel.
 
 \subsection{Pipeline details}
@@ -313,8 +313,8 @@ distributions. I ran 10 pipelines for every dataset: (Heuristic, 0.5),
 (Uniform, 0.9).
 
 The pruning scheduler chosen is \texttt{PolynomialDecay}: sparsity is
-introduced slowly, model weights can take into account this impact and become
-robust to the effect of weights being dropped.
+introduced slowly, model weights can consider this impact and become robust to
+the effect of weights being dropped.
 
 Every run of the pipeline gives the following metrics:
 \begin{enumerate}
@@ -379,7 +379,7 @@ control the types of optimization that are performed during the compilation
 process.\cite{vela_compiler}
 
 \subsection{Results for MobileNet v1 with CIFAR-10}
-For running this experiment the classical MobileNet v1 architecture has been
+For running this experiment, the classical MobileNet v1 architecture has been
 slightly modified on three layers.
 
 \begin{figure}[ht]
@@ -465,7 +465,7 @@ than the uniform one across all sparsity levels}.
 The top 3 lines (dark blue, amber and grey) represent the accuracies of the
 heuristic distribution whilst the bottom 3 lines (yellow, light blue and green)
 represent the accuracies of the uniform distribution.
-Moreover the heuristic distribution seems to have a smoother trend across
+Moreover, the heuristic distribution seems to have a smoother trend across
 sparsity levels compared to the uniform distribution.
 
 \subsubsection{tflite size results}\label{subsub:tflite_size_results}
@@ -541,7 +541,7 @@ Overall model sparsity: 0.8499967309
 What the \autoref{fig:cifar10_tflite_size} highlights though is that quantized
 models have a much smaller size compared to FP32.
 
-As reference, the uncompressed version of the tflite files are:
+As reference, the uncompressed sizes of the tflite files are:
 \begin{itemize}
     \item \textbf{FP32}: 12.85Mb
     \item \textbf{int8}: 3.61Mb
@@ -556,16 +556,16 @@ At 0.85 sparsity level, there are the following gains in terms of sizes:
 \end{itemize}
 
 As mentioned in \autoref{subsub:vela_memory_optimization}, vela compiler has a
-compression mechanism built it when parsing a tflite file. In fact vela
+compression mechanism built it when parsing a tflite file. In fact, vela
 generates a new tflite file which has a better compression rate compared to
 gzip. Let's take the above sparsity level (0.85) and see how vela compiler
-affects the tflite size. Of course this is true \textbf{only for quantized
+affects the tflite size. Of course, this is true \textbf{only for quantized
 tflite models.}
-The non pruned quantized models (both int8 and int16) have a \textbf{vela size
-of 3Mb.}. The pruned ones have a \textbf{vela size of 0.91Mb}, a \textbf{a
+The non-pruned quantized models (both int8 and int16) have a \textbf{vela size
+of 3Mb.}. The pruned ones have a \textbf{vela size of 0.91Mb}, a \textbf{
 decrease of 69.67\%}.
 
-Let's take the 2 extreme points of the tflite sizes: FP32 non pruned and
+Let's take the 2 extreme points of the tflite sizes: FP32 non-pruned and
 int8/int16 pruned at 0.85. \textbf{The tflite size goes from 12.85 to 0.91Mb,
 a decrease of 92.92\%}. The accuracy goes from 0.9487 to 0.9205
 (int8) or 0.9243 (int16), \textbf{a decrease of 2.97\% (int8) or 2.57\% (int16)}
@@ -584,8 +584,8 @@ depending for what NPU it needs to optimise the tflite for.
     \caption{Heuristic vs Uniform: CIFAR-10 int8, int16 inference speed}\label{fig:cifar10_inf_speed}
 \end{figure}
 
-In this case the it has been optimised for an Ethos-U55 high-end embedded NPU
-with the following characteristics: SRAM, 4 GB/s and flash, 0.5 GB/s.
+In this case it has been optimised for an Ethos-U55 high-end embedded NPU with
+the following characteristics: SRAM, 4 GB/s and flash, 0.5 GB/s.
 \autoref{lst:vela_output_cifar10} shows vela output with estimations. At the very end
 there is the inference speed (\texttt{Batch Inference time})
 
@@ -637,16 +637,16 @@ Total cycles                                  3044776 cycles/batch
 Batch Inference time                 6.09 ms,  164.22 inferences/s (batch size 1)
 \end{lstlisting}
 
-Similarly to what has been observed in \autoref{subsub:tflite_size_results},
+Similarly, to what has been observed in \autoref{subsub:tflite_size_results},
 the distribution doesn't really impact the inference speed.
-It looks like though that the heuristic distributions is slightly faster than
-the uniform one but the increase is so small that can be ignored.
+It looks like though that the heuristic distribution is slightly faster than
+the uniform one, but the increase is so small that can be ignored.
 
 \autoref{fig:cifar10_inf_speed} shows anyway that int16 is much slower than
 int8: this because the native MACs (multiply-accumulate) operations in
 Ethos-U55 are 8 (for weights) $\times$ 8 (for activations) bit.
 8$\times$16-bit operations run at half the speed of 8$\times$8-bit
-operations as a 8$\times$16 MAC is twice as complex as an 8$\times$8 MAC\@.
+operations as an 8$\times$16 MAC is twice as complex as an 8$\times$8 MAC\@.
 
 Let's take the inference time for non-pruned tflite files and see what kind of
 speed up there is with a pruned model at 0.85.
@@ -714,7 +714,7 @@ increases slightly.
 When the sparsity is set to 0.9, the heuristic distribution has an increase of
 \textbf{1.02\% in the TOP-1} compared to the uniform distribution.
 \textbf{Any sparsity bigger than 0.5 is going to have an impact in terms of
-accuracy}: the TOP-1 accuracy for a non pruned model is 0.709 and for a
+accuracy}: the TOP-1 accuracy for a non-pruned model is 0.709 and for a
 sparsity of 0.5 there is a TOP-1 accuracy of 0.7021 for the heuristic
 distribution and 0.7011 for the uniform distribution.
 If the requirements of the application need to have a close accuracy of the
@@ -725,7 +725,7 @@ uniform distribution.
 If the application requires a smaller model, it needs to compromise in the
 accuracy: from 0.75 to 0.85 sparsity level, there is a drop of about 6\%.
 At 0.85 sparsity level, the heuristic distribution has an accuracy of
-\textbf{0.6018} whilst the uniform distributions falls in the range below, at
+\textbf{0.6018} whilst the uniform distribution falls in the range below, at
 \textbf{0.5927}.
 At 0.9 sparsity level there is a steeper drop in accuracy (around 0.52): with
 this accuracy it might not make any sense to deploy the model at all.
@@ -733,7 +733,7 @@ If the sparsity needs to be between 0.5 and 0.85 then the heuristic
 distribution is the one of choice as it gives better accuracy.
 
 The loss follows has a specular behaviour of the TOP-1 accuracy: at 0.5
-sparsity level the loss function is the same for both distribution.
+sparsity level the loss function is the same for both distributions.
 From 0.75 to 0.85 they increase almost in a parallel fashion and to get to 0.9
 were both distributions have a steeper increase.
 Anyway from 0.75 to 0.9 the heuristic distribution (blue line) has always a
@@ -743,8 +743,8 @@ higher sparsity levels.
 
 \subsubsection{tflite size results}
 Like in the previous case, the sparsity distribution doesn't really influence
-the size of the tflite: the number of weights is exactly the same between the
-uniform and the heuristic distributions.
+the size of the tflite: the number of weights is the same between the uniform
+and the heuristic distributions.
 
 This model though is bigger than the previous one: even the architecture is the
 same, it deals with different input size: CIFAR-10 images are 32$\times$32
@@ -779,7 +779,7 @@ As shown in \autoref{lst:heuristic_weights_imagenet}, the heuristic
 distribution of the weights has set different sparsity levels for every layer
 depending on how many weights a layer has.
 
-As reference, the uncompressed version of the tflite files are:
+As reference, the uncompressed sizes of the tflite files are:
 \begin{itemize}
     \item \textbf{FP32}: 16.91Mb
     \item \textbf{int8}: 4.66Mb
@@ -793,11 +793,11 @@ At 0.85 sparsity level, there are the following gains in terms of sizes:
     \item \textbf{int16}: 4.71Mb $\rightarrow$ 1.13, a \textbf{decrease of 76.01\%}
 \end{itemize}
 
-The non pruned quantized models (both int8 and int16) have a \textbf{vela size
-of 3.96Mb.}. The pruned ones have a \textbf{vela size of 1.16Mb}, a \textbf{a
+The non-pruned quantized models (both int8 and int16) have a \textbf{vela size
+of 3.96Mb.}. The pruned ones have a \textbf{vela size of 1.16Mb}, a \textbf{
 decrease of 71.46\%}.
 
-Let's take the 2 extreme points of the tflite sizes: FP32 non pruned and
+Let's take the 2 extreme points of the tflite sizes: FP32 non-pruned and
 int8/int16 pruned at 0.85. \textbf{The tflite size goes from 16.91 to 1.16Mb,
 a decrease of 93.14\%}.
 
@@ -805,8 +805,8 @@ a decrease of 93.14\%}.
 Like in the previous, I have run vela for every experiment and the same
 conclusions can be made: the distribution doesn't really impact the inference
 speed.
-It looks like though that the heuristic distributions is slightly faster than
-the uniform one but the increase is so small that can be ignored.
+It looks like though that the heuristic distribution is slightly faster than
+the uniform one, but the increase is so small that can be ignored.
 
 Let's take the inference time for non-pruned tflite files and see what kind of
 speed up there is with a pruned model at 0.85 (as shown in
